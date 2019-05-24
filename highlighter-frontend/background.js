@@ -11,24 +11,10 @@ chrome.runtime.onInstalled.addListener(() => {
           actions: [new chrome.declarativeContent.ShowPageAction()]
     }]);
   });
-
 });
-
-// This function is called onload in the popup code
-// function getPageDetails(callback) {
-//   console.log("I am here");
-// 	// Inject the content script into the current page 
-// 	chrome.tabs.executeScript(null, { file: 'content.js' }); 
-// 	// Perform the callback when a message is received from the content script
-// 	chrome.runtime.onMessage.addListener(function(message)  { 
-//     // Call the callback function
-//     console.log("I have a message::", message);
-// 		callback(message); 
-// 	}); 
-// };
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse)  { 
   // Call the callback function
-  console.log("I have a message::", request.message);
+  console.log("I have a message::", request.data);
   sendResponse(request.message); 
 }); 

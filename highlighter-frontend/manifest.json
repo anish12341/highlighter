@@ -2,7 +2,7 @@
   "name": "Highlighter",
   "version": "1.0",
   "description": "An extension to highlight stuff on a page",
-  "permissions": ["activeTab","declarativeContent","storage"],
+  "permissions": ["activeTab","declarativeContent","storage","tabs"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
