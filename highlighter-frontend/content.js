@@ -1,54 +1,80 @@
 let flag = 0;
 let isDivThere = false;
-document.addEventListener('mouseup',function(event)
-{   
-  if (flag === 1) {
-    console.log("EVENT IN MOVE::", event);
-    let sel = window.getSelection().toString();
-    console.log("I am in here at content");
+console.log('State::', document.readyState);
+
+document.addEventListener('mouseup', (event) =>
+{ 
+  let sel = window.getSelection().toString();
+  // highlight('p', 'mall software programs that customize the browsing experience');
+  // console.log('document body:', document.body.innerHTML);
+  if (flag === 1 && sel && sel.length > 0 && !isDivThere) {
+    console.log('Event full data::', event);    
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
-    console.log("Object style second::", decisionDiv.style.left);    
     document.body.appendChild(decisionDiv);
     isDivThere = true;
-    if(sel.length)
-        chrome.runtime.sendMessage({'message':'setText','data': sel},function(response){})
-  } else {
-    console.log("In mouse down");      
+    chrome.runtime.sendMessage({'message':'setText','data': sel},function(response){})
   }
-})
+});
 
-document.addEventListener('mousedown',function(event)
+document.addEventListener('mousedown', (event) =>
 {    
-  console.log("In mouse down");
   flag = 0;
-  if (isDivThere) {
+  if (isDivThere && event.target && event.target.id != 'highlightme') {
     console.log('Deleting now');
     document.getElementById('decision-popup').remove();
     isDivThere = false;
   }
-})
+});
 
-document.addEventListener('mousemove',function(event)
+document.addEventListener('mousemove', (event) =>
 {
   console.log("In mouse move");  
   flag = 1;
-})
+});
 
 const getDivConfiguration = (object, event) => {
   let style = {
     position: "absolute",
     left: `${event.pageX}px`,
     top: `${event.pageY}px`,
-    zIndex: 10
-  };
+    zIndex: 10,
+    height: '60px',
+    width: '130px',
+    backgroundColor: '#000000',
+    borderColor: '#ff0000' ,
+    borderWidth: '2px',
+    borderRadius: '5px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
   object.id = 'decision-popup';
   for (var key in object.style) {
     if (style.hasOwnProperty(key)) {
       object.style[key] = style[key];
     }
   };
-  object.innerHTML = "I AM DIV";
-  console.log("Object style::", object.style.left);
+  object.innerHTML = `<button id=highlightme style='height:60%;width:auto;background-color:#ffff4d;
+  border-radius:5px;color:#000000'>Highlight Me!</button>`;
   return object;
+};
+
+const highlight = (tagName, text) => {
+  var elementArray = document.getElementsByTagName('p');
+  console.log('Element array::', elementArray);
+  for (i=0 ; i < elementArray.length ; i++) {
+    let eachElement = elementArray.item(i);
+    let innerContent = eachElement.innerHTML;
+    innerContent = innerContent.replace(/\n/g, "");
+    innerContent = innerContent.replace(/\s\s/g,' ');
+    console.log('Inner HTML::', innerContent);
+    let index = innerContent.indexOf('software programs that customize the browsing experience');
+    console.log('Index::', index);
+    if (index >= 0) {
+      console.log('Matched::', eachElement);      
+      innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
+      eachElement.innerHTML = innerContent;
+    }
+  };
 }
