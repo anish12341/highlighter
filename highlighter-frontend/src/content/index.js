@@ -1,14 +1,48 @@
+const beforeHighlight = require('./beforeHighlight/highlight.js');
+beforeHighlight.getHighlightInfo();
+
 let flag = 0;
 let isDivThere = false;
-console.log('State::', document.readyState);
+// console.log('State::', document.readyState);
+
 
 document.addEventListener('mouseup', (event) =>
 { 
   let sel = window.getSelection().toString();
-  // highlight('p', 'mall software programs that customize the browsing experience');
+  highlight('p', 'Extensions');
   // console.log('document body:', document.body.innerHTML);
   if (flag === 1 && sel && sel.length > 0 && !isDivThere) {
-    console.log('Event full data::', event);    
+    // console.log('Event full data::', event);
+    // console.log('Whole path::', event.path);
+    // console.log('Composed path::', event.composedPath());
+   
+    let path = event.path;
+    let querySelectorString = '';
+    let tillBody = false;    
+    for (i=0;i<path.length;i++) {
+      if(i === 0) {
+        if (path[i].id) {
+          // console.log('I have ID');
+        } else {
+          // console.log('I dont have ID');
+          let childOffsetTop = path[i].offsetTop;
+          // console.log('OffsetTop:', childOffsetTop);
+          // console.log('First element:', path[i]);
+          let siblings = getSiblings(path[i], exampleFilter);
+          // console.log('Siblings:', siblings); 
+        }
+      }
+      // console.log('Each node name:', path[i].nodeName);
+      if (path[i].nodeName === 'BODY') {
+        tillBody = true;
+      }
+      if (!tillBody) {
+        let classOrId = path[i].id ? `#${path[i].id}` : (path[i].className ? `.${path[i].className}` : '');
+        let intermediate = `${path[i].nodeName}${classOrId}`;
+        querySelectorString += `${intermediate} `;
+      };
+    }
+    // console.log('Final querySelector:', querySelectorString.trim());
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
     document.body.appendChild(decisionDiv);
@@ -60,19 +94,30 @@ const getDivConfiguration = (object, event) => {
   return object;
 };
 
+const exampleFilter = (el) => {
+  return el.nodeName.toLowerCase() == 'p';
+}
+
+const getSiblings = (el, filter) => {
+  var siblings = [];
+  el = el.parentNode.firstChild;
+  do { if (!filter || filter(el)) siblings.push(el); } while (el = el.nextElementSibling);
+  return siblings;
+}
+
 const highlight = (tagName, text) => {
-  var elementArray = document.getElementsByTagName('p');
-  console.log('Element array::', elementArray);
+  let elementArray = document.getElementsByTagName('p');
+  // console.log('Element array::', elementArray);
   for (i=0 ; i < elementArray.length ; i++) {
     let eachElement = elementArray.item(i);
     let innerContent = eachElement.innerHTML;
     innerContent = innerContent.replace(/\n/g, "");
     innerContent = innerContent.replace(/\s\s/g,' ');
-    console.log('Inner HTML::', innerContent);
-    let index = innerContent.indexOf('software programs that customize the browsing experience');
-    console.log('Index::', index);
+    // console.log('Whole P::', eachElement);
+    let index = innerContent.indexOf(text);
+    // console.log('Index::', index);
     if (index >= 0) {
-      console.log('Matched::', eachElement);      
+      // console.log('Matched::', eachElement);      
       innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
       eachElement.innerHTML = innerContent;
     }
