@@ -1,5 +1,4 @@
 const beforeHighlight = require('./beforeHighlight/highlight.js');
-beforeHighlight.getHighlightInfo();
 
 let flag = 0;
 let isDivThere = false;
@@ -9,40 +8,15 @@ let isDivThere = false;
 document.addEventListener('mouseup', (event) =>
 { 
   let sel = window.getSelection().toString();
-  highlight('p', 'Extensions');
+  // highlight('p', 'Extensions');
   // console.log('document body:', document.body.innerHTML);
-  if (flag === 1 && sel && sel.length > 0 && !isDivThere) {
-    // console.log('Event full data::', event);
+  if (flag === 1 && sel && sel.length > 0 && !isDivThere && !(beforeHighlight.extraTerminatingConditions(event.path && event.path.length > 0 ? event.path[0] : {}))) {
+    console.log('Event full data::', event);
     // console.log('Whole path::', event.path);
     // console.log('Composed path::', event.composedPath());
+    // Get all information regarding element which contains selected text
+    beforeHighlight.getHighlightInfo(event.path);
    
-    let path = event.path;
-    let querySelectorString = '';
-    let tillBody = false;    
-    for (i=0;i<path.length;i++) {
-      if(i === 0) {
-        if (path[i].id) {
-          // console.log('I have ID');
-        } else {
-          // console.log('I dont have ID');
-          let childOffsetTop = path[i].offsetTop;
-          // console.log('OffsetTop:', childOffsetTop);
-          // console.log('First element:', path[i]);
-          let siblings = getSiblings(path[i], exampleFilter);
-          // console.log('Siblings:', siblings); 
-        }
-      }
-      // console.log('Each node name:', path[i].nodeName);
-      if (path[i].nodeName === 'BODY') {
-        tillBody = true;
-      }
-      if (!tillBody) {
-        let classOrId = path[i].id ? `#${path[i].id}` : (path[i].className ? `.${path[i].className}` : '');
-        let intermediate = `${path[i].nodeName}${classOrId}`;
-        querySelectorString += `${intermediate} `;
-      };
-    }
-    // console.log('Final querySelector:', querySelectorString.trim());
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
     document.body.appendChild(decisionDiv);
@@ -93,17 +67,6 @@ const getDivConfiguration = (object, event) => {
   border-radius:5px;color:#000000'>Highlight Me!</button>`;
   return object;
 };
-
-const exampleFilter = (el) => {
-  return el.nodeName.toLowerCase() == 'p';
-}
-
-const getSiblings = (el, filter) => {
-  var siblings = [];
-  el = el.parentNode.firstChild;
-  do { if (!filter || filter(el)) siblings.push(el); } while (el = el.nextElementSibling);
-  return siblings;
-}
 
 const highlight = (tagName, text) => {
   let elementArray = document.getElementsByTagName('p');
