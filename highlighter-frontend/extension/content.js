@@ -1,112 +1,97 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-let siblingNodeName;
-const getHighlightInfo = (path) => {
-  // let path = event.path;
-  let querySelectorString = '';
-  let tillBody = false;
-  let elementTopOrder, elementLeftOrder;
-  let pathArray = [];
-  let isID = false;
-  console.log('I want to see path:', path);
-  for (i=0;i<path.length;i++) {
-    console.log('Every path element:', path[i].nodeName);
-    if(i === 0) {
-      if (path[i].id) {
-        console.log('I have ID');
-        isID = true;
-      } else {
-        // console.log('I dont have ID');
-        siblingNodeName = path[i].nodeName;  
-        let siblings = getSiblings(path[i], exampleFilter);        
-        console.log('My siblings::', siblings);
-        ({elementTopOrder, elementLeftOrder} = getTopLeftOrder(path[i].offsetTop, path[i].offsetLeft, siblings));
-        console.log('OffsetTop AND offsetLeft:', elementTopOrder, elementLeftOrder);
-        // console.log('First element:', path[i]);
-      }
-    }
-
-    // console.log('Each node name:', path[i].nodeName);
-    if (path[i].nodeName === 'BODY') {
-      tillBody = true;
-    }
-
-    if (!tillBody) {
-      let classOrId = path[i].id ? `#${path[i].id}` : (path[i].className ? `.${path[i].className}` : '');
-      let intermediate = `${path[i].nodeName}${classOrId}`;
-      // querySelectorString += `${intermediate} `;
-      pathArray.push(intermediate);
-    };
-  }
-  pathArray = pathArray.reverse();
-  pathArray = pathArray.filter(word => (word != undefined || word != null));
-  console.log('Path array::', pathArray);
-  querySelectorString = pathArray.join(' > ').trim();
-  console.log('Final querySelector:', elementTopOrder, elementLeftOrder, querySelectorString);
-  // querySelectorString += ':nth-of-type(1)';
-  let currentElement = isID ? document.querySelectorAll(querySelectorString)[0] : document.querySelectorAll(querySelectorString)[elementTopOrder];
-  console.log('Current element::', currentElement);
-  return;
+// Get element from xPath stored before
+const getElementByXpath = (path) => {
+  return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
 
+const highlight = (path, selectedText) => {
+  // let elementArray = document.getElementsByTagName('p');
+  let element = getElementByXpath(path);
+  console.log('Current element::', element, element.textContent);
+  let innerContent = element.innerHTML;
+  innerContent = innerContent.replace(/\n/g, "");
+  innerContent = innerContent.replace(/\s\s/g,' ');
+  // console.log('Whole P::', eachElement);
+  selectedText = selectedText.replace(/\n/g, "");
+  selectedText = selectedText.replace(/\s\s/g,' ');
+  let index = innerContent.indexOf(selectedText);
+  console.log('Index::', index);
+  if (index >= 0) {
+    // console.log('Matched::', eachElement);      
+    innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+selectedText.length) + "</span>" + innerContent.substring(index + selectedText.length);
+    element.innerHTML = innerContent;
+  }
+}
+
+module.exports = {highlight};
+
+},{}],2:[function(require,module,exports){
+const afterHighlight = require('../afterHighlight/highlight.js');
+
 //All the custom conditions when Highlight should not work
-const extraTerminatingConditions = (path) => {
-  if (path.nodeName === 'A' || path.nodeName === undefined) {
+const extraTerminatingConditions = (path, selectedText) => {
+  console.log('My selected Text::', selectedText);
+  if (path.nodeName === 'A' 
+  || path.nodeName === undefined 
+  || (getMultipleElements(selectedText, /^<[\w]+>/)
+  && getMultipleElements(selectedText, /<[/][\w]+>$/))) {
     return true;
   }
   return false;
 }
 
-//Get all siblings when ID is not provided
-const getSiblings = (el, filter) => {
-  var siblings = [];
-  console.log('Parent child::', el.parentNode.nodeName);
-  el = el.parentNode.firstChild;
-  do { if (!filter || filter(el)) siblings.push(el); } while (el = el.nextElementSibling);
-  // let siblings = Array.from(document.getElementsByTagName(siblingNodeName));
-  return siblings;
+//Create xPath
+const getPathInitial = (event) => {
+  if (event===undefined) event= window.event;                     // IE hack
+  let target= 'target' in event? event.target : event.srcElement; // another IE hack
+
+  let root= document.compatMode==='CSS1Compat'? document.documentElement : document.body;
+  let mxy= [event.clientX+root.scrollLeft, event.clientY+root.scrollTop];
+
+  let path= getPathTo(target);
+  let message =`You clicked the element ${path}`;
+  console.log('New message::', message);  
+  return path;
 }
 
-const exampleFilter = (el, nodeName) => {
-  return el.nodeName.toLowerCase() == siblingNodeName.toLowerCase();
-}
-
-//Get top and left ordering of siblings
-const getTopLeftOrder = (elementTop, elementLeft, siblings) => {
-  let result = {};
-  console.log('Siblings:', siblings);
-  console.log('Element top and left::', elementTop, elementLeft);
+const getPathTo = (element) => {
+  if (element.id!=='')
+      return "//*[@id='"+element.id+"']";
   
-  //Get top ordering
-  siblings.sort((a, b) => (a.offsetTop > b.offsetTop) ? 1 : -1);        
-  siblings.every((element, index) => {
-    if (element.offsetTop === elementTop) {
-      result.elementTopOrder = index
-      console.log('Sibling offset top INSIDE:', element.offsetTop, index);
-      console.log('HTML Collection::', )
-      return false;        
-    }
-    console.log('Sibling offset top OUTSIDE:', element.offsetTop, index);              
-    return true;
-  });
+  if (element===document.body)
+      return element.tagName.toLowerCase();
 
-  //Get left ordering
-  siblings.sort((a, b) => (a.offsetLeft > b.offsetLeft) ? 1 : -1);        
-  siblings.every((element, index) => {
-    if (element.offsetLeft === elementLeft) {
-      result.elementLeftOrder = index
-      console.log('Sibling offset left INSIDE:', element.offsetLeft, index);
-      return false;              
-    }
-    console.log('Sibling offset left OUTSIDE:', element.offsetLeft, index); 
-    return true;                     
-  });
-  return result;
+  let ix= 0;
+  let siblings= element.parentNode.childNodes;
+  for (let i= 0; i<siblings.length; i++) {
+      let sibling= siblings[i];
+      
+      if (sibling===element) return getPathTo(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']';
+      
+      if (sibling.nodeType===1 && sibling.tagName === element.tagName) {
+          ix++;
+      }
+  }
 }
 
-module.exports = {getHighlightInfo, extraTerminatingConditions};
+// Check if selected text is overlapping multiple elements in DOM
+const getMultipleElements = (string, regexp) => {
+  console.log('Multiple elements::', regexp.test(string))
+  return regexp.test(string);
+};
 
-},{}],2:[function(require,module,exports){
+const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
+  decisionDiv.addEventListener('click', (event) => {
+    console.log('I am clicked on highlight me!');
+    afterHighlight.highlight(xPath, selectedHTML);
+  })
+};
+
+module.exports = {extraTerminatingConditions, getPathInitial, onHighlightClick};
+
+},{"../afterHighlight/highlight.js":1}],3:[function(require,module,exports){
 const beforeHighlight = require('./beforeHighlight/highlight.js');
+const afterHighlight = require('./afterHighlight/highlight.js');
 
 let flag = 0;
 let isDivThere = false;
@@ -117,17 +102,34 @@ document.addEventListener('mouseup', (event) =>
 { 
   let sel = window.getSelection().toString();
   // highlight('p', 'Extensions');
-  // console.log('document body:', document.body.innerHTML);
-  if (flag === 1 && sel && sel.length > 0 && !isDivThere && !(beforeHighlight.extraTerminatingConditions(event.path && event.path.length > 0 ? event.path[0] : {}))) {
+  let sel2 = window.getSelection();
+  let selectedHTML;
+  if (sel2.rangeCount) {
+      let container = document.createElement("div");
+      container.id = 'temp_div_html';
+      for (let i = 0, len = sel2.rangeCount; i < len; ++i) {
+          container.appendChild(sel2.getRangeAt(i).cloneContents());
+      }
+      selectedHTML = container.innerHTML;
+      // let tempDivHtml = document.getElementById('temp_div_html');
+      // tempDivHtml.remove();
+      console.log('I want HTML',selectedHTML)      
+  }
+  // console.log('Inner HTML of first element:', event.path[0].innerHTML);
+  // console.log('Regex replace:', event.paxth[0].innerHTML.replace())
+  if (flag === 1 && sel && sel.length > 0 && !isDivThere && !(beforeHighlight.extraTerminatingConditions(event.path && event.path.length > 0 ? event.path[0] : {}, selectedHTML))) {
     console.log('Event full data::', event);
     // console.log('Whole path::', event.path);
     // console.log('Composed path::', event.composedPath());
     // Get all information regarding element which contains selected text
-    beforeHighlight.getHighlightInfo(event.path);
-   
+    // beforeHighlight.getHighlightInfo(event.path);
+    let xPath = beforeHighlight.getPathInitial(event);
+    // afterHighlight.highlight(xPath, selectedHTML);
+    // console.log('Current element using xPath ::', currentElement, currentElement.innerHTML);
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
     document.body.appendChild(decisionDiv);
+    beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
     isDivThere = true;
     chrome.runtime.sendMessage({'message':'setText','data': sel},function(response){})
   }
@@ -176,22 +178,22 @@ const getDivConfiguration = (object, event) => {
   return object;
 };
 
-const highlight = (tagName, text) => {
-  let elementArray = document.getElementsByTagName('p');
-  // console.log('Element array::', elementArray);
-  for (i=0 ; i < elementArray.length ; i++) {
-    let eachElement = elementArray.item(i);
-    let innerContent = eachElement.innerHTML;
-    innerContent = innerContent.replace(/\n/g, "");
-    innerContent = innerContent.replace(/\s\s/g,' ');
-    // console.log('Whole P::', eachElement);
-    let index = innerContent.indexOf(text);
-    // console.log('Index::', index);
-    if (index >= 0) {
-      // console.log('Matched::', eachElement);      
-      innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
-      eachElement.innerHTML = innerContent;
-    }
-  };
-}
-},{"./beforeHighlight/highlight.js":1}]},{},[2]);
+// const highlight = (tagName, text) => {
+//   let elementArray = document.getElementsByTagName('p');
+//   // console.log('Element array::', elementArray);
+//   for (i=0 ; i < elementArray.length ; i++) {
+//     let eachElement = elementArray.item(i);
+//     let innerContent = eachElement.innerHTML;
+//     innerContent = innerContent.replace(/\n/g, "");
+//     innerContent = innerContent.replace(/\s\s/g,' ');
+//     // console.log('Whole P::', eachElement);
+//     let index = innerContent.indexOf(text);
+//     // console.log('Index::', index);
+//     if (index >= 0) {
+//       // console.log('Matched::', eachElement);      
+//       innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
+//       eachElement.innerHTML = innerContent;
+//     }
+//   };
+// }
+},{"./afterHighlight/highlight.js":1,"./beforeHighlight/highlight.js":2}]},{},[3]);
