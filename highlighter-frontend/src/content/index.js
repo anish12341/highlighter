@@ -1,5 +1,5 @@
 const beforeHighlight = require('./beforeHighlight/highlight.js');
-beforeHighlight.getHighlightInfo();
+const afterHighlight = require('./afterHighlight/highlight.js');
 
 let flag = 0;
 let isDivThere = false;
@@ -9,43 +9,35 @@ let isDivThere = false;
 document.addEventListener('mouseup', (event) =>
 { 
   let sel = window.getSelection().toString();
-  highlight('p', 'Extensions');
-  // console.log('document body:', document.body.innerHTML);
-  if (flag === 1 && sel && sel.length > 0 && !isDivThere) {
-    // console.log('Event full data::', event);
+  // highlight('p', 'Extensions');
+  let sel2 = window.getSelection();
+  let selectedHTML;
+  if (sel2.rangeCount) {
+      let container = document.createElement("div");
+      container.id = 'temp_div_html';
+      for (let i = 0, len = sel2.rangeCount; i < len; ++i) {
+          container.appendChild(sel2.getRangeAt(i).cloneContents());
+      }
+      selectedHTML = container.innerHTML;
+      // let tempDivHtml = document.getElementById('temp_div_html');
+      // tempDivHtml.remove();
+      console.log('I want HTML',selectedHTML)      
+  }
+  // console.log('Inner HTML of first element:', event.path[0].innerHTML);
+  // console.log('Regex replace:', event.paxth[0].innerHTML.replace())
+  if (flag === 1 && sel && sel.length > 0 && !isDivThere && !(beforeHighlight.extraTerminatingConditions(event.path && event.path.length > 0 ? event.path[0] : {}, selectedHTML))) {
+    console.log('Event full data::', event);
     // console.log('Whole path::', event.path);
     // console.log('Composed path::', event.composedPath());
-   
-    let path = event.path;
-    let querySelectorString = '';
-    let tillBody = false;    
-    for (i=0;i<path.length;i++) {
-      if(i === 0) {
-        if (path[i].id) {
-          // console.log('I have ID');
-        } else {
-          // console.log('I dont have ID');
-          let childOffsetTop = path[i].offsetTop;
-          // console.log('OffsetTop:', childOffsetTop);
-          // console.log('First element:', path[i]);
-          let siblings = getSiblings(path[i], exampleFilter);
-          // console.log('Siblings:', siblings); 
-        }
-      }
-      // console.log('Each node name:', path[i].nodeName);
-      if (path[i].nodeName === 'BODY') {
-        tillBody = true;
-      }
-      if (!tillBody) {
-        let classOrId = path[i].id ? `#${path[i].id}` : (path[i].className ? `.${path[i].className}` : '');
-        let intermediate = `${path[i].nodeName}${classOrId}`;
-        querySelectorString += `${intermediate} `;
-      };
-    }
-    // console.log('Final querySelector:', querySelectorString.trim());
+    // Get all information regarding element which contains selected text
+    // beforeHighlight.getHighlightInfo(event.path);
+    let xPath = beforeHighlight.getPathInitial(event);
+    // afterHighlight.highlight(xPath, selectedHTML);
+    // console.log('Current element using xPath ::', currentElement, currentElement.innerHTML);
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
     document.body.appendChild(decisionDiv);
+    beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
     isDivThere = true;
     chrome.runtime.sendMessage({'message':'setText','data': sel},function(response){})
   }
@@ -94,32 +86,21 @@ const getDivConfiguration = (object, event) => {
   return object;
 };
 
-const exampleFilter = (el) => {
-  return el.nodeName.toLowerCase() == 'p';
-}
-
-const getSiblings = (el, filter) => {
-  var siblings = [];
-  el = el.parentNode.firstChild;
-  do { if (!filter || filter(el)) siblings.push(el); } while (el = el.nextElementSibling);
-  return siblings;
-}
-
-const highlight = (tagName, text) => {
-  let elementArray = document.getElementsByTagName('p');
-  // console.log('Element array::', elementArray);
-  for (i=0 ; i < elementArray.length ; i++) {
-    let eachElement = elementArray.item(i);
-    let innerContent = eachElement.innerHTML;
-    innerContent = innerContent.replace(/\n/g, "");
-    innerContent = innerContent.replace(/\s\s/g,' ');
-    // console.log('Whole P::', eachElement);
-    let index = innerContent.indexOf(text);
-    // console.log('Index::', index);
-    if (index >= 0) {
-      // console.log('Matched::', eachElement);      
-      innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
-      eachElement.innerHTML = innerContent;
-    }
-  };
-}
+// const highlight = (tagName, text) => {
+//   let elementArray = document.getElementsByTagName('p');
+//   // console.log('Element array::', elementArray);
+//   for (i=0 ; i < elementArray.length ; i++) {
+//     let eachElement = elementArray.item(i);
+//     let innerContent = eachElement.innerHTML;
+//     innerContent = innerContent.replace(/\n/g, "");
+//     innerContent = innerContent.replace(/\s\s/g,' ');
+//     // console.log('Whole P::', eachElement);
+//     let index = innerContent.indexOf(text);
+//     // console.log('Index::', index);
+//     if (index >= 0) {
+//       // console.log('Matched::', eachElement);      
+//       innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
+//       eachElement.innerHTML = innerContent;
+//     }
+//   };
+// }
