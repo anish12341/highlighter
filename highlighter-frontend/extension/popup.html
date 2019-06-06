@@ -7,11 +7,44 @@
           width: 30px;
           outline: none;
         }
+        
+        #loggedin_main {
+          width: 300px;
+          height: 300px;
+          border: 1px solid black;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .btn-group {
+          width: 50%;
+        }
+        .btn-group button {
+          background-color: #f4f442; /* Green background */
+          border: 1px solid black; /* Green border */
+          cursor: pointer; /* Pointer/hand icon */
+          width: 100%; /* Set a width if needed */
+          display: block; /* Make the buttons appear below each other */
+          margin-top: 2%;
+          color: black;
+          border-radius: 5px;
+          font-family: monospace;
+        }
+
+        /* Add a background color on hover */
+        .btn-group button:hover {
+          background-color: black;
+          color: white;
+        }
       </style>
     </head>
     <body>
-      <button id="changeColor"></button>
-      <div id="output"></div>
-      <script src="popup.js"></script>
+      <div id="loggedin_main">
+        <div class="btn-group">
+          <button id="login_button_popup">Login</button>
+          <button id="signup_button">Signup</button>
+        </div>
+      </div>
+      <script src="popup.js"></script>      
     </body>
   </html>

@@ -14,6 +14,10 @@ module.exports = function(grunt) {
       content: {
           src: './src/content/*',
           dest: './extension/content.js'
+      },
+      popup: {
+          src: './src/popup/*',
+          dest: './extension/popup.js'
       }
   }
 
@@ -25,12 +29,14 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', [
       'browserify:background',
-      'browserify:content'
+      'browserify:content',
+      'browserify:popup'
   ])
 
   grunt.registerTask('watch', [
       'watchify:background',
-      'watchify:content'
+      'watchify:content',
+      'browserify:popup'
   ])
 
 }

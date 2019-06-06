@@ -39,7 +39,7 @@ document.addEventListener('mouseup', (event) =>
     document.body.appendChild(decisionDiv);
     beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
     isDivThere = true;
-    chrome.runtime.sendMessage({'message':'setText','data': sel},function(response){})
+    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){})
   }
 });
 
@@ -81,8 +81,18 @@ const getDivConfiguration = (object, event) => {
       object.style[key] = style[key];
     }
   };
-  object.innerHTML = `<button id=highlightme style='height:60%;width:auto;background-color:#ffff4d;
-  border-radius:5px;color:#000000'>Highlight Me!</button>`;
+  object.innerHTML = `<button 
+  id=highlightme 
+  style='height:60%;
+         width:auto;
+         background-color:#ffff4d;
+         border-radius:5px;
+         color:#000000;
+         font-family:monospace;'
+  onMouseOver="this.style.color='white';
+               this.style.backgroundColor='black'"
+  onMouseOut="this.style.color='#000000';
+               this.style.backgroundColor='#ffff4d'">Highlight Me!</button>`;
   return object;
 };
 

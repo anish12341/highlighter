@@ -13,8 +13,11 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse)  { 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { 
   // Call the callback function
   console.log("I have a message::", request.data);
+  if (request.message === 'setText') {
+    console.log('I got the message!');
+  }
   sendResponse(request.message); 
 }); 
