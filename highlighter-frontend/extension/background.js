@@ -14,9 +14,21 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse)  { 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { 
   // Call the callback function
   console.log("I have a message::", request.data);
+  if (request.message === 'setText') {
+    console.log('I got the message!');
+  }
   sendResponse(request.message); 
-}); 
+});
+
+chrome.runtime.onMessageExternal.addListener(
+  (request, sender, sendResponse) => {
+    console.log("From browser::", request);
+    // if (sender.url == blocklistedWebsite)
+    //   return;  // don't allow this web page access
+    // if (request.openUrlInEditor)
+    //   openUrl(request.openUrlInEditor);
+  });
 },{}]},{},[1]);
