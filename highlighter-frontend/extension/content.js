@@ -131,7 +131,7 @@ document.addEventListener('mouseup', (event) =>
     document.body.appendChild(decisionDiv);
     beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
     isDivThere = true;
-    chrome.runtime.sendMessage({'message':'setText','data': sel},function(response){})
+    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){})
   }
 });
 

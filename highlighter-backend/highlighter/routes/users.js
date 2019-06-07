@@ -34,8 +34,42 @@ router.get('/login', (req, res, next) => {
 
 //Process POST login request
 router.post('/login', (req, res, next) => {
-  // res.send('respond with a resource');
-  res.render('users/login', {iserror: false});
+  const schema = Joi.object().keys({
+    password: Joi.string().min(8).required().label('password'),
+    email: Joi.string().email({ minDomainAtoms: 2 }).required().label('email')
+  });
+  
+  const joiResult = Joi.validate(req.body, schema);
+  if (joiResult.error) {
+    return res.status(400).send(
+      badRequest
+    );
+  }
+
+  async.waterfall([
+    (next) => {
+      User.findOne({ where: { email: req.body.email } }).then(user => {
+        if (user && user.dataValues) {
+          return next(null, user.dataValues);
+        }
+        return next({ customMessage: 'Email does not exist' });
+      })
+    },
+    (user, next) => {
+      bcrypt.compare(req.body.password, user.password, (error, res) => {
+        if (res) {
+          return next(null, null);
+        }
+        return next({ customMessage: 'Invalid email/password' });
+      })
+    }
+  ], (error, result) => {
+    if (error) {
+      debug('Error:', error);
+      return res.render('users/login', { iserror: true, errorMessage: error.customMessage ? error.customMessage : 'Something went wrong' });
+    }
+    return res.render('users/done', { successMessage: 'You are logged in successfully..'});
+  });
 });
 
 //Process POST signup request
@@ -103,7 +137,6 @@ router.post('/signup', (req, res, next) => {
         return res.render('users/signup', { iserror: true, errorMessage: error.customMessage ? error.customMessage : 'Something went wrong' });
       });
   })
-  // res.render('users/signup');
 });
 
 // Get signup page

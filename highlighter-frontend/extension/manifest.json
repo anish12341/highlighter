@@ -29,5 +29,8 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "externally_connectable": {
+    "matches": ["*://developer.chrome.com/*","http://127.0.0.1:3000/*"]
+  }
 }
