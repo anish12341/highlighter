@@ -83,6 +83,7 @@ const getMultipleElements = (string, regexp) => {
 const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
   decisionDiv.addEventListener('click', (event) => {
     console.log('I am clicked on highlight me!');
+    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){});    
     afterHighlight.highlight(xPath, selectedHTML);
   })
 };
@@ -129,9 +130,9 @@ document.addEventListener('mouseup', (event) =>
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
     document.body.appendChild(decisionDiv);
-    beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
     isDivThere = true;
-    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){})
+    beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
+    // chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){})    
   }
 });
 

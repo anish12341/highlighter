@@ -49,6 +49,7 @@ router.post('/login', (req, res, next) => {
   async.waterfall([
     (next) => {
       User.findOne({ where: { email: req.body.email } }).then(user => {
+        // console.log('User data new::', user);
         if (user && user.dataValues) {
           return next(null, user.dataValues);
         }
@@ -58,7 +59,7 @@ router.post('/login', (req, res, next) => {
     (user, next) => {
       bcrypt.compare(req.body.password, user.password, (error, res) => {
         if (res) {
-          return next(null, null);
+          return next(null, user);
         }
         return next({ customMessage: 'Invalid email/password' });
       })
@@ -68,7 +69,8 @@ router.post('/login', (req, res, next) => {
       debug('Error:', error);
       return res.render('users/login', { iserror: true, errorMessage: error.customMessage ? error.customMessage : 'Something went wrong' });
     }
-    return res.render('users/done', { successMessage: 'You are logged in successfully..'});
+    delete result.password;
+    return res.render('users/done', { successMessage: 'You are logged in successfully..', data: result });
   });
 });
 
@@ -131,7 +133,8 @@ router.post('/signup', (req, res, next) => {
     User
       .create(createJson)
       .then(user => {
-        return res.render('users/done', { successMessage: 'You have registered yourself successfully..'});        
+        delete user.dataValues.password;
+        return res.render('users/done', { successMessage: 'You have registered yourself successfully..', data: user.dataValues });        
       })
       .catch(error => {
         return res.render('users/signup', { iserror: true, errorMessage: error.customMessage ? error.customMessage : 'Something went wrong' });

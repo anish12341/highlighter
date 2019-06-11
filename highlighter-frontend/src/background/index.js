@@ -1,3 +1,6 @@
+const beforeHighlight = require('./beforeHighlight/highlight.js');
+const beforeHighlight_popup = require('../popup/beforeHighlight_popup/highlight.js');
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({color: '#f4f142'}, () => {
     console.log("The color is yellow.");
@@ -13,11 +16,17 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { 
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => { 
   // Call the callback function
   console.log("I have a message::", request.data);
   if (request.message === 'setText') {
-    console.log('I got the message!');
+    let userLoggedIn = await beforeHighlight.userLoggedIn();
+    if(userLoggedIn) {
+      console.log('User already loggedIn');
+    } else {
+      beforeHighlight_popup.openLogin();
+      console.log('User NOT logged IN');
+    }
   }
   sendResponse(request.message); 
 });
@@ -25,6 +34,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onMessageExternal.addListener(
   (request, sender, sendResponse) => {
     console.log("From browser::", request);
+    if (request.message === 'userData') {
+      chrome.storage.sync.set({user: request.data}, function() {
+        console.log('Value is set to ', request.data);
+      });
+    }
     // if (sender.url == blocklistedWebsite)
     //   return;  // don't allow this web page access
     // if (request.openUrlInEditor)

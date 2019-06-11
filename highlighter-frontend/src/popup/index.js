@@ -1,32 +1,42 @@
-let changeColor = document.getElementById('changeColor');
-let loginButton = document.getElementById('login_button_popup');
-chrome.extension.getBackgroundPage().console.log("In POPUP.js::", loginButton);
-chrome.storage.sync.get('color', (data) => {
-  changeColor.style.backgroundColor = data.color;
-  changeColor.setAttribute('value', data.color);
+const beforeHighlight_popup = require('./beforeHighlight_popup/highlight.js');
+const beforeHighlight_background = require('../background/beforeHighlight/highlight.js');
+
+document.addEventListener('DOMContentLoaded', async () => {
+  let beforeLogin = document.getElementById('before_login');
+  let afterLogin = document.getElementById('after_login');  
+
+  chrome.extension.getBackgroundPage().console.log('Document loaded!!');
+
+  let isUserLoggedIn = await beforeHighlight_background.userLoggedIn();
+  chrome.extension.getBackgroundPage().console.log('Is user loggedIN::', isUserLoggedIn);
+  
+  if (isUserLoggedIn) {
+    chrome.extension.getBackgroundPage().console.log('I am already logged IN');    
+    afterLogin.style.display = 'block';
+
+    let logoutButton = document.getElementById('logout_button');
+
+    logoutButton.onclick = (element) => {
+      beforeHighlight_popup.logout();
+      beforeHighlight_popup.hideShowLogin('logout', {beforeLogin, afterLogin});    
+    };
+  } else {
+    chrome.extension.getBackgroundPage().console.log('I am NOT already logged IN', beforeLogin.style.display);    
+    
+    beforeLogin.style.display = 'block';
+
+    let loginButton = document.getElementById('login_button_popup');
+    let signupButton = document.getElementById('signup_button');
+
+    loginButton.onclick = (element) => {
+      beforeHighlight_popup.openLogin();
+    };
+    
+    signupButton.onclick = (element) => {
+      beforeHighlight_popup.openSignup();
+    };
+  }
 });
-
-changeColor.onclick = (element) => {
-  // console.log("Element::", element);
-  let color = element.target.value;
-  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-    chrome.extension.getBackgroundPage().console.log("Tabs::", tabs);    
-    chrome.tabs.executeScript(
-        tabs[0].id,
-        {code: 'document.body.style.backgroundColor = "' + color + '";'});
-  });
-};
-
-loginButton.onclick = (element) => {
-  chrome.extension.getBackgroundPage().console.log('Loging button is clicked after!');
-  chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
-    chrome.tabs.create({url: 'https://www.google.com', active: true}, (tabs) => {
-      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
-      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabs[0].id);      
-    })
-    // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
-  });
-};
 // chrome.tabs.executeScript( {
 //   code: "window.getSelection().toString();"
 // }, function(selection) {
