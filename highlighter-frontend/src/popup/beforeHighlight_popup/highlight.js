@@ -1,0 +1,32 @@
+const openLogin = () => {
+  chrome.extension.getBackgroundPage().console.log('Loging button is clicked after!');
+  chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
+    chrome.tabs.create({url: 'http://127.0.0.1:3000/users/login', active: true}, (tabs) => {
+      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
+      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabs[0].id);      
+    })
+    // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
+  });
+}
+
+const openSignup = () => {
+  chrome.extension.getBackgroundPage().console.log('Signup button is clicked after!');
+  chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
+    chrome.tabs.create({url: 'http://127.0.0.1:3000/users/signup', active: true}, (tabs) => {
+      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
+      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabs[0].id);      
+    })
+    // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
+  });
+}
+
+const logout = () => {
+  chrome.extension.getBackgroundPage().console.log('Logout button is clicked after!');
+  chrome.storage.sync.clear();
+}
+
+const hideShowLogin = (type, elementObject) => {
+  elementObject.afterLogin.style.display = type === 'logout' ? 'none' : 'block';
+  elementObject.beforeLogin.style.display = type === 'logout' ? 'block' : 'none';
+}
+module.exports = {openLogin, openSignup, logout, hideShowLogin};
