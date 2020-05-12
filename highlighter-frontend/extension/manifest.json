@@ -31,6 +31,6 @@
     }
   ],
   "externally_connectable": {
-    "matches": ["*://developer.chrome.com/*","http://127.0.0.1:3000/*"]
+    "matches": ["*://developer.chrome.com/*","http://127.0.0.1:3000/*","*://linkedin.com/jobs/*"]
   }
 }

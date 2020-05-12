@@ -1,7 +1,3 @@
-const highlightPost = () => {
-  
-}
-
 const userLoggedIn = () => {
   return new Promise (
     async(resolve, reject) => {

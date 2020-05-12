@@ -1,61 +1,71 @@
+/**
+ * What are content scripts??
+ * A content script is “a JavaScript file that runs in the context of web pages.” 
+ * This means that a content script can interact with web pages that the browser visits.
+ * Whenever I want to interact with the web page content scripts are used.
+ */
 const beforeHighlight = require('./beforeHighlight/highlight.js');
 const afterHighlight = require('./afterHighlight/highlight.js');
 
 let flag = 0;
 let isDivThere = false;
-// console.log('State::', document.readyState);
-
-
+console.log("I am here");
+/**
+ * This listener is used when user stops dragging the mouse and mouse is up
+ */
 document.addEventListener('mouseup', (event) =>
 { 
+  // Get selection which user just selected
   let sel = window.getSelection().toString();
-  // highlight('p', 'Extensions');
   let sel2 = window.getSelection();
   let selectedHTML;
+
+  // Rangecount is used to check whether user selected anything or not.
+  console.log("My rangecount is eee: ", sel2.rangeCount);
   if (sel2.rangeCount) {
+      // Creating temporary div and putting selected html as innerHTML of that div
       let container = document.createElement("div");
       container.id = 'temp_div_html';
       for (let i = 0, len = sel2.rangeCount; i < len; ++i) {
           container.appendChild(sel2.getRangeAt(i).cloneContents());
       }
       selectedHTML = container.innerHTML;
-      // let tempDivHtml = document.getElementById('temp_div_html');
-      // tempDivHtml.remove();
       console.log('I want HTML',selectedHTML)      
   }
-  // console.log('Inner HTML of first element:', event.path[0].innerHTML);
-  // console.log('Regex replace:', event.paxth[0].innerHTML.replace())
-  if (flag === 1 && sel && sel.length > 0 && !isDivThere && !(beforeHighlight.extraTerminatingConditions(event.path && event.path.length > 0 ? event.path[0] : {}, selectedHTML))) {
-    console.log('Event full data::', event);
-    // console.log('Whole path::', event.path);
-    // console.log('Composed path::', event.composedPath());
-    // Get all information regarding element which contains selected text
-    // beforeHighlight.getHighlightInfo(event.path);
+  
+  /**To check if selected text is overlapping multiple DOM elements and other conditions like if "Highlight Me!"..
+   * div is already there
+  */
+  if (flag === 1 && sel && sel.length > 0 && !isDivThere && 
+    !(beforeHighlight.extraTerminatingConditions(event.path && event.path.length > 0 ? event.path[0] : {}, selectedHTML))) {
+    
+    // Get xPath of the element so that it can be identified later on
     let xPath = beforeHighlight.getPathInitial(event);
-    // afterHighlight.highlight(xPath, selectedHTML);
-    // console.log('Current element using xPath ::', currentElement, currentElement.innerHTML);
+    
+    // Preparing a div so that it can be displayed as "Highlight Me!"
     let decisionDiv = document.createElement("DIV");
     decisionDiv = getDivConfiguration(decisionDiv, event);
     document.body.appendChild(decisionDiv);
     isDivThere = true;
     beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
-    // chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){})    
   }
 });
 
+/** This listener is used when user clicks on any other part of the web page so that I can delete already popped
+ * up div which says "Highlight Me!"
+ * */ 
 document.addEventListener('mousedown', (event) =>
 {    
   flag = 0;
   if (isDivThere && event.target && event.target.id != 'highlightme') {
-    console.log('Deleting now');
     document.getElementById('decision-popup').remove();
     isDivThere = false;
   }
 });
 
+/** A listener to detect the drag of a mouse */
 document.addEventListener('mousemove', (event) =>
 {
-  console.log("In mouse move");  
   flag = 1;
 });
 
@@ -95,22 +105,3 @@ const getDivConfiguration = (object, event) => {
                this.style.backgroundColor='#ffff4d'">Highlight Me!</button>`;
   return object;
 };
-
-// const highlight = (tagName, text) => {
-//   let elementArray = document.getElementsByTagName('p');
-//   // console.log('Element array::', elementArray);
-//   for (i=0 ; i < elementArray.length ; i++) {
-//     let eachElement = elementArray.item(i);
-//     let innerContent = eachElement.innerHTML;
-//     innerContent = innerContent.replace(/\n/g, "");
-//     innerContent = innerContent.replace(/\s\s/g,' ');
-//     // console.log('Whole P::', eachElement);
-//     let index = innerContent.indexOf(text);
-//     // console.log('Index::', index);
-//     if (index >= 0) {
-//       // console.log('Matched::', eachElement);      
-//       innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+text.length) + "</span>" + innerContent.substring(index + text.length);
-//       eachElement.innerHTML = innerContent;
-//     }
-//   };
-// }

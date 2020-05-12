@@ -1,0 +1,3 @@
+grunt watchify
+SET DEBUG=highlighter:*
+node bin/www

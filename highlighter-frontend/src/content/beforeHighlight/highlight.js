@@ -26,6 +26,9 @@ const getPathInitial = (event) => {
   return path;
 }
 
+/**
+ * A recursive function to get path to the element
+ */
 const getPathTo = (element) => {
   if (element.id!=='')
       return "//*[@id='"+element.id+"']";
@@ -48,13 +51,15 @@ const getPathTo = (element) => {
 
 // Check if selected text is overlapping multiple elements in DOM
 const getMultipleElements = (string, regexp) => {
-  console.log('Multiple elements::', regexp.test(string))
   return regexp.test(string);
 };
 
+/**
+ * This method send the selected HTML to background script. This is done by setting up a click listener
+ * on the newly created div
+ */
 const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
   decisionDiv.addEventListener('click', (event) => {
-    console.log('I am clicked on highlight me!');
     chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){});    
     afterHighlight.highlight(xPath, selectedHTML);
   })
