@@ -60,7 +60,7 @@ const getMultipleElements = (string, regexp) => {
  */
 const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
   decisionDiv.addEventListener('click', (event) => {
-    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML},function(response){});    
+    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath},function(response){});    
     afterHighlight.highlight(xPath, selectedHTML);
   })
 };

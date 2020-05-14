@@ -6,11 +6,11 @@ const userLoggedIn = () => {
       chrome.storage.sync.get('user', (data) => {
         console.log('Value currently is ', data);    
         if (!data.user) {
-          console.log('Returning false');      
-          return resolve(false);
+          console.log('Returning false');
+          return resolve({isLoggedIn: false, userData: null});
         }
         console.log('Returning true');    
-        return resolve(true);
+        return resolve({isLoggedIn: true, userData: data.user});
       })
     }
   );
@@ -29,7 +29,6 @@ const openLogin = () => {
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
     chrome.tabs.create({url: 'http://127.0.0.1:3000/users/login', active: true}, (tabs) => {
       chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
-      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabs[0].id);      
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
   });
@@ -44,7 +43,6 @@ const openSignup = () => {
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
     chrome.tabs.create({url: 'http://127.0.0.1:3000/users/signup', active: true}, (tabs) => {
       chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
-      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabs[0].id);      
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
   });
@@ -79,14 +77,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   let beforeLogin = document.getElementById('before_login');
   let afterLogin = document.getElementById('after_login');  
 
-  chrome.extension.getBackgroundPage().console.log('Document loaded!!');
 
   // A method to check whether user is logged in or not
   let isUserLoggedIn = await beforeHighlight_background.userLoggedIn();
 
-  chrome.extension.getBackgroundPage().console.log('Is user loggedIN::', isUserLoggedIn);
+  chrome.extension.getBackgroundPage().console.log('Is user loggedIN::', isUserLoggedIn.isLoggedIn);
   
-  if (isUserLoggedIn) {
+  if (isUserLoggedIn.isLoggedIn) {
     chrome.extension.getBackgroundPage().console.log('I am already logged IN');  
     // Make "afterLogin" part visible from popup.html if user is already logged in  
     afterLogin.style.display = 'block';

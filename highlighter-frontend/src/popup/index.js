@@ -9,14 +9,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   let beforeLogin = document.getElementById('before_login');
   let afterLogin = document.getElementById('after_login');  
 
-  chrome.extension.getBackgroundPage().console.log('Document loaded!!');
 
   // A method to check whether user is logged in or not
   let isUserLoggedIn = await beforeHighlight_background.userLoggedIn();
 
-  chrome.extension.getBackgroundPage().console.log('Is user loggedIN::', isUserLoggedIn);
+  chrome.extension.getBackgroundPage().console.log('Is user loggedIN::', isUserLoggedIn.isLoggedIn);
   
-  if (isUserLoggedIn) {
+  if (isUserLoggedIn.isLoggedIn) {
     chrome.extension.getBackgroundPage().console.log('I am already logged IN');  
     // Make "afterLogin" part visible from popup.html if user is already logged in  
     afterLogin.style.display = 'block';

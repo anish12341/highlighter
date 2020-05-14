@@ -12,5 +12,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'highlights',
     });
   };
+  user.sync({alter: true}, ()=>{});
   return user;
 };

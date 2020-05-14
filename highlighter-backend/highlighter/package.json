@@ -23,7 +23,9 @@
     "sequelize": "^5.8.7"
   },
   "main": "app.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "sequelize-cli": "^5.5.1"
+  },
   "author": "",
   "license": "ISC",
   "description": ""
