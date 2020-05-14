@@ -2,7 +2,9 @@
 module.exports = (sequelize, DataTypes) => {
   const highlights = sequelize.define('highlights', {
     selected_html: DataTypes.TEXT,
-    url: DataTypes.STRING
+    url: DataTypes.STRING,
+    xpath: DataTypes.STRING,
+    userid: DataTypes.INTEGER
   }, {});
   highlights.associate = (models) => {
     // associations can be defined here
@@ -11,5 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'CASCADE',
     });
   };
+  highlights.sync({alter: true}, ()=>{});
   return highlights;
 };

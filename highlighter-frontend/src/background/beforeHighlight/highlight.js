@@ -5,11 +5,11 @@ const userLoggedIn = () => {
       chrome.storage.sync.get('user', (data) => {
         console.log('Value currently is ', data);    
         if (!data.user) {
-          console.log('Returning false');      
-          return resolve(false);
+          console.log('Returning false');
+          return resolve({isLoggedIn: false, userData: null});
         }
         console.log('Returning true');    
-        return resolve(true);
+        return resolve({isLoggedIn: true, userData: data.user});
       })
     }
   );
