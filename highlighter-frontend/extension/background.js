@@ -59,13 +59,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostEquals: 'developer.chrome.com'},
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostContains: 'linkedin.com'},
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostEquals: 'github.com'},
+        pageUrl: {hostContains: ''},
       })
       ],
           actions: [new chrome.declarativeContent.ShowPageAction()]
@@ -86,7 +80,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     var dataToSend = {
       selected_html: request.data,
       xpath: request.xpath,
-      url: sender.url
+      url: sender.url,
+      url_title: sender.tab.title
     }
     if(userLoggedIn.isLoggedIn) {
       dataToSend.userid = userLoggedIn.userData.id;
@@ -101,11 +96,17 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       beforeHighlight_popup.openLogin();
       console.log('User NOT logged IN');
     }
+  } else if (request.message === 'checkPopup') {
+    await chrome.storage.sync.set({ openPopup: false });
+    await chrome.storage.sync.set({ page: 1 });
   }
   sendResponse(request.message); 
 });
 
-
+/**
+ * Trying to set up background script on startup
+ */
+chrome.runtime.onStartup.addListener(() => {});
 
 /**
  * When user is logged in "user" is set in chrome.storage to remember that user is logged in.
@@ -130,7 +131,11 @@ chrome.runtime.onMessageExternal.addListener(
           await chrome.tabs.remove(sender.tab.id);
           chrome.storage.sync.get('leavingFrom', async (lastTabId) => {
             console.log("Last tab ID: ", lastTabId);
-            await chrome.tabs.update(lastTabId.leavingFrom, {active: true});
+            chrome.tabs.get(lastTabId.leavingFrom, async (tab) => {
+              if (tab != undefined) {
+                await chrome.tabs.update(lastTabId.leavingFrom, {active: true});
+              }
+            });
           });
         }, 5000);
       });
@@ -144,10 +149,10 @@ chrome.runtime.onMessageExternal.addListener(
  * TODO: generalize the host (http://127.0.0.1:3000/)
  */
 const openLogin = () => {
-  chrome.extension.getBackgroundPage().console.log('Loging button is clicked after!');
+  // chrome.extension.getBackgroundPage().console.log('Loging button is clicked after!');
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
     chrome.tabs.create({url: 'http://127.0.0.1:3000/users/login', active: true}, (tabs) => {
-      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
+      // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
   });
@@ -158,10 +163,10 @@ const openLogin = () => {
  * TODO: generalize the host (http://127.0.0.1:3000/)
  */
 const openSignup = () => {
-  chrome.extension.getBackgroundPage().console.log('Signup button is clicked after!');
+  // chrome.extension.getBackgroundPage().console.log('Signup button is clicked after!');
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
     chrome.tabs.create({url: 'http://127.0.0.1:3000/users/signup', active: true}, (tabs) => {
-      chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
+      // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
   });
@@ -171,8 +176,9 @@ const openSignup = () => {
  * Method to logout which clears chrome.storage which stores user information when user
  * is logged in
  */
-const logout = () => {
-  chrome.extension.getBackgroundPage().console.log('Logout button is clicked after!');
+const logout = async () => {
+  // chrome.extension.getBackgroundPage().console.log('Logout button is clicked after!');
+  await registerLoginSignup();
   chrome.storage.sync.clear();
 }
 
@@ -183,5 +189,45 @@ const hideShowLogin = (type, elementObject) => {
   elementObject.afterLogin.style.display = type === 'logout' ? 'none' : 'block';
   elementObject.beforeLogin.style.display = type === 'logout' ? 'block' : 'none';
 }
-module.exports = {openLogin, openSignup, logout, hideShowLogin};
+
+/**
+ * Method to register events on Login signup button after pressing logout button
+ */
+const registerLoginSignup = () => {
+  return new Promise(
+    async (resolve, reject) => {
+      try {
+        setCurrentTab();
+        let loginButton = document.getElementById('login_button_popup');
+        let signupButton = document.getElementById('signup_button');
+        // Set event on login button
+        loginButton.onclick = async (element) => {
+          openLogin();
+        };
+        
+        // Set event on signup button
+        signupButton.onclick = (element) => {
+          openSignup();
+        };
+      } catch (error) {
+        return reject(error);
+      }
+      return resolve();
+    }
+  )
+}
+
+/**
+ * Method to set current tab so that it can remember where to land after login/signup
+ */
+const setCurrentTab = () => {
+  var query = { active: true, currentWindow: true };
+  chrome.tabs.query(query, async (currentTab) => {
+    if (currentTab.length > 0) {
+      await chrome.storage.sync.set({leavingFrom: currentTab[0].id});
+    }
+  });
+};
+
+module.exports = {openLogin, openSignup, logout, hideShowLogin, registerLoginSignup, setCurrentTab};
 },{}]},{},[3]);

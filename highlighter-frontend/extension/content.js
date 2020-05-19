@@ -107,6 +107,7 @@ const afterHighlight = require('./afterHighlight/highlight.js');
 let flag = 0;
 let isDivThere = false;
 console.log("I am here");
+
 /**
  * This listener is used when user stops dragging the mouse and mouse is up
  */
@@ -151,8 +152,9 @@ document.addEventListener('mouseup', (event) =>
 /** This listener is used when user clicks on any other part of the web page so that I can delete already popped
  * up div which says "Highlight Me!"
  * */ 
-document.addEventListener('mousedown', (event) =>
+document.addEventListener('mousedown', async (event) =>
 {    
+  // await checkPopup();
   flag = 0;
   if (isDivThere && event.target && event.target.id != 'highlightme') {
     document.getElementById('decision-popup').remove();

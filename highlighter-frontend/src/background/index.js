@@ -21,13 +21,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostEquals: 'developer.chrome.com'},
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostContains: 'linkedin.com'},
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostEquals: 'github.com'},
+        pageUrl: {hostContains: ''},
       })
       ],
           actions: [new chrome.declarativeContent.ShowPageAction()]
@@ -48,7 +42,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     var dataToSend = {
       selected_html: request.data,
       xpath: request.xpath,
-      url: sender.url
+      url: sender.url,
+      url_title: sender.tab.title
     }
     if(userLoggedIn.isLoggedIn) {
       dataToSend.userid = userLoggedIn.userData.id;
@@ -63,11 +58,17 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       beforeHighlight_popup.openLogin();
       console.log('User NOT logged IN');
     }
+  } else if (request.message === 'checkPopup') {
+    await chrome.storage.sync.set({ openPopup: false });
+    await chrome.storage.sync.set({ page: 1 });
   }
   sendResponse(request.message); 
 });
 
-
+/**
+ * Trying to set up background script on startup
+ */
+chrome.runtime.onStartup.addListener(() => {});
 
 /**
  * When user is logged in "user" is set in chrome.storage to remember that user is logged in.
@@ -92,7 +93,11 @@ chrome.runtime.onMessageExternal.addListener(
           await chrome.tabs.remove(sender.tab.id);
           chrome.storage.sync.get('leavingFrom', async (lastTabId) => {
             console.log("Last tab ID: ", lastTabId);
-            await chrome.tabs.update(lastTabId.leavingFrom, {active: true});
+            chrome.tabs.get(lastTabId.leavingFrom, async (tab) => {
+              if (tab != undefined) {
+                await chrome.tabs.update(lastTabId.leavingFrom, {active: true});
+              }
+            });
           });
         }, 5000);
       });
