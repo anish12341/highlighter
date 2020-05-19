@@ -4,7 +4,8 @@ module.exports = (sequelize, DataTypes) => {
     selected_html: DataTypes.TEXT,
     url: DataTypes.STRING,
     xpath: DataTypes.STRING,
-    userid: DataTypes.INTEGER
+    userid: DataTypes.INTEGER,
+    url_title: DataTypes.STRING
   }, {});
   highlights.associate = (models) => {
     // associations can be defined here
