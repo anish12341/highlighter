@@ -5,9 +5,125 @@ const getElementByXpath = (path) => {
 }
 
 /**
+ * Delete span element after deleting highlight
+ */
+const eliminateSpan = (spanElement, highlightid) => {
+  // console.log("Span: ", spanElement.innerHTML, spanElement.dataset.highlightid, spanElement.dataset.highlight, highlightid);
+  let parent = spanElement.parentNode;
+  console.log("Child count: ", parent.childNodes.length);
+  let parentHTML = '';
+  parent.childNodes.forEach(element => {
+    console.log("inner: ", element.data, element.innerHTML, element.tagName);
+    if (element.dataset && element.dataset.highlight && element.dataset.highlightid == highlightid) {
+      console.log("IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+      parentHTML += element.innerHTML;
+    } else if (element.tagName != undefined) {
+      let tempEle = element.cloneNode(true);
+      let tempDiv = document.createElement('div');
+      tempDiv.appendChild(tempEle);
+      parentHTML += element.innerHTML;
+    } else {
+      parentHTML += element.data;
+    }
+  });
+  console.log("Parent html: ", parentHTML);
+  parent.innerHTML = parentHTML;
+}
+
+/**
+ * Method to eliminate delete dialog box above a highlight
+ */
+const eliminateDelete = (de, d, element) => {
+  de.remove();
+  d.remove();
+  element.style.border = '0px';
+}
+
+/**
+ * Method to do something when highlighted text is clicked!
+ */
+const highlightClicked = (element) => {
+  console.log(typeof element, element.style);
+  element.style.border = '1px solid #111111';
+  element.style.cursor = 'pointer';
+  var rect = element.getBoundingClientRect();
+  var bodyRect = document.body.getBoundingClientRect();
+  console.log(rect.top, rect.right, rect.bottom, rect.left);
+  console.log(rect.top - bodyRect.top); 
+  console.log("Highlight clicked!");
+
+  var d = document.createElement('div');
+  d.style.width = '70px';
+  d.style.height = '35px';
+  d.style.backgroundColor = 'black';
+  d.style.position = 'fixed';
+  d.style.left = (rect.left)+'px';
+  d.style.top = (rect.top-51)+'px';
+  d.style.display = 'flex';
+  d.style.alignItems = 'center';
+  d.style.justifyContent = 'center';
+  d.style.zIndex = 10;
+  d.style.borderWidth = '2px';
+  d.style.borderRadius = '5px';
+  document.body.appendChild(d);
+
+  // Delete button inside d
+  let deleteButton = document.createElement('button');
+  deleteButton.id = 'deleteHighlight';
+  deleteButton.style.height = '60%';
+  deleteButton.style.width = 'auto';
+  deleteButton.style.backgroundColor = '#ffff4d';
+  deleteButton.style.borderRadius = '5px';
+  deleteButton.style.color = '#000000';
+  deleteButton.style.fontFamily = 'monospace';
+  deleteButton.onmouseover = () => {
+    deleteButton.style.color = 'white';
+    deleteButton.style.backgroundColor = 'black';
+  }
+  deleteButton.onmouseout = () => {
+    deleteButton.style.color = '#000000';
+    deleteButton.style.backgroundColor = '#ffff4d';
+  }
+  deleteButton.innerHTML = 'Delete?';
+
+
+  var de = document.createElement('div');
+  de.style.width = '0px';
+  de.style.height = '0px';
+  de.style.position = 'fixed';
+  de.style.left = (rect.left)+'px';
+  de.style.top = (rect.top-21)+'px';
+  de.style.borderLeft = '10px solid transparent';
+  de.style.borderRight = '10px solid transparent';
+  de.style.borderTop = '20px solid black';
+  document.body.appendChild(de);
+
+  document.addEventListener('scroll',(event) => {
+    eliminateDelete(de, d, element);
+  });
+
+  document.addEventListener('mousedown',(event) => {
+    if (event.target != deleteButton) {
+      eliminateDelete(de, d, element);
+    }
+  });
+
+  document.addEventListener('keydown',(event) => {
+    eliminateDelete(de, d, element);
+  });
+
+  deleteButton.onclick = () => {
+    chrome.runtime.sendMessage({'message':'deleteHighlight', 'highlighterid': element.dataset.highlightid}, (response) => {
+      eliminateDelete(de, d, element);
+      eliminateSpan(element, element.dataset.highlightid);
+    });
+  }
+  d.appendChild(deleteButton);
+}
+/**
  * This method does the work of actually highlighting selected text and changing it's color
  */
-const highlight = (path, selectedText) => {
+const highlight = (path, selectedText, highlightid = undefined) => {
   let element = getElementByXpath(path);
   let innerContent = element.innerHTML;
   innerContent = innerContent.replace(/\n/g, "");
@@ -17,8 +133,23 @@ const highlight = (path, selectedText) => {
   let index = innerContent.indexOf(selectedText);
   console.log('Index::', index);
   if (index >= 0) {
-    innerContent = innerContent.substring(0,index) + "<span style='background-color: yellow;'>" + innerContent.substring(index,index+selectedText.length) + "</span>" + innerContent.substring(index + selectedText.length);
+    let spanString = innerContent.substring(index,index+selectedText.length);
+    let spanElement = document.createElement('span');
+    spanElement.innerHTML = spanString;
+    spanElement.style.backgroundColor = 'yellow';
+    spanElement.dataset.highlight = true;
+    spanElement.dataset.highlightid = highlightid;
+
+    let wrapper = document.createElement('div');
+    wrapper.appendChild(spanElement);
+
+    innerContent = innerContent.substring(0,index) + wrapper.innerHTML + innerContent.substring(index + selectedText.length);
     element.innerHTML = innerContent;
+    element.childNodes.forEach(element => {
+      if (element.dataset && element.dataset.highlight) {
+        element.onclick = () => {highlightClicked(element)};
+      }
+    });
   }
 }
 
@@ -87,8 +218,14 @@ const getMultipleElements = (string, regexp) => {
  */
 const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
   decisionDiv.addEventListener('click', (event) => {
-    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath},function(response){});    
-    afterHighlight.highlight(xPath, selectedHTML);
+    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath}, (response) => {
+      console.log("Response from background scrsdsipt: ", response);
+      let highlightid;
+      if (response != undefined) {
+        highlightid = response.data.id;
+      }
+      afterHighlight.highlight(xPath, selectedHTML, highlightid);
+    });    
   })
 };
 
@@ -149,6 +286,7 @@ document.addEventListener('mouseup', (event) =>
   }
 });
 
+
 /** This listener is used when user clicks on any other part of the web page so that I can delete already popped
  * up div which says "Highlight Me!"
  * */ 
@@ -204,4 +342,6 @@ const getDivConfiguration = (object, event) => {
                this.style.backgroundColor='#ffff4d'">Highlight Me!</button>`;
   return object;
 };
+
+
 },{"./afterHighlight/highlight.js":1,"./beforeHighlight/highlight.js":2}]},{},[3]);

@@ -60,8 +60,14 @@ const getMultipleElements = (string, regexp) => {
  */
 const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
   decisionDiv.addEventListener('click', (event) => {
-    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath},function(response){});    
-    afterHighlight.highlight(xPath, selectedHTML);
+    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath}, (response) => {
+      console.log("Response from background scrsdsipt: ", response);
+      let highlightid;
+      if (response != undefined) {
+        highlightid = response.data.id;
+      }
+      afterHighlight.highlight(xPath, selectedHTML, highlightid);
+    });    
   })
 };
 

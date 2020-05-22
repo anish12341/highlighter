@@ -58,11 +58,13 @@ button {
   .each_highlight {
     padding-inline-start: 1%;
     border-bottom: 1px solid black; /* Green border */
+    width: 92%;
+    float: left;
   }
 
   .each_highlight li {
     text-overflow: ellipsis;
-    width: 20.8em;
+    width: 20em;
     white-space: nowrap;
     overflow: hidden;
     font-family: monospace;
@@ -175,4 +177,14 @@ button {
 #no_highlight_p {
   font-family: monospace;
   font-size: 13px;
+}
+
+.delete_sign {
+  float: right;
+  margin-right: 2%;
+  margin-top: 3.4%;
+}
+
+.no_decoration {
+  text-decoration: none;
 }

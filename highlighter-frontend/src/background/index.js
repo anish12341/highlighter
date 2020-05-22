@@ -6,10 +6,12 @@
 const beforeHighlight = require('./beforeHighlight/highlight.js');
 const afterHighlight = require('./afterHighlight/highlight.js');
 const beforeHighlight_popup = require('../popup/beforeHighlight_popup/highlight.js');
+const afterHighlight_popup = require('../popup/afterHighlight_popup/highlight.js');
 
 // This flag remembers that there's something to highlight after returing from login/signup
 var previousHighlight = false;
 var dataToHighlight = null;
+var host = 'http://127.0.0.1:3000';
 
 /**
  * Specifies on which URLs background scripts would be activated.
@@ -30,13 +32,9 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 /**
- * This listener listens for any messages coming from content scripts and takes appropriate
- * actions.
+ * Message listener async
  */
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => { 
-  // Call the callback function
-  console.log("I have a message::", request.data);
-  console.log("Sender: ", sender);
+const asyncMessageListener = async (request, sender) => {
   if (request.message === 'setText') {
     let userLoggedIn = await beforeHighlight.userLoggedIn();
     var dataToSend = {
@@ -47,8 +45,9 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     }
     if(userLoggedIn.isLoggedIn) {
       dataToSend.userid = userLoggedIn.userData.id;
-      afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend);
-      console.log('User already loggedIn');
+      let postedHighlight = await afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend);
+      console.log("Hey I want to send something: ", postedHighlight);
+      return postedHighlight;
     } else {
       // Setting a state which will be used to know that there is a highlight on hold before going to login/signup
       previousHighlight = true;
@@ -57,12 +56,34 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       await chrome.storage.sync.set({leavingFrom: sender.tab.id});
       beforeHighlight_popup.openLogin();
       console.log('User NOT logged IN');
+      return undefined
     }
   } else if (request.message === 'checkPopup') {
     await chrome.storage.sync.set({ openPopup: false });
     await chrome.storage.sync.set({ page: 1 });
+    return undefined;
+  } else if (request.message === 'deleteHighlight') {
+    let highlighterid = request.highlighterid;
+    console.log("I want to delete from content");
+    await afterHighlight_popup.useAPI('deleteHighlight'
+    ,'DELETE', `${host}/highlights/`, {highlighterid});
+    return undefined;
   }
-  sendResponse(request.message); 
+  // sendResponse(request.message); 
+}
+
+/**
+ * This listener listens for any messages coming from content scripts and takes appropriate
+ * actions.
+ */
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { 
+  // Call the callback function
+  console.log("I have a message::", request.data, sendResponse);
+  console.log("Sender: ", sender);
+  asyncMessageListener(request, sender).then((response) => {
+      sendResponse(response);
+  });
+  return true;
 });
 
 /**

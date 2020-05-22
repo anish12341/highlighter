@@ -1,7 +1,9 @@
  <!DOCTYPE html>
   <html>
     <head>
+      <link rel="stylesheet" href="css/all.css">
       <link rel="stylesheet" href="popup.css">
+      <link rel="stylesheet" href="modal.css">
     </head>
     <body>
       <script src="jquery-3.5.1.min.js"></script>
@@ -21,7 +23,21 @@
               <p id="no_highlight_p">No <span style="background-color: yellow;">highlights</span> yet!</p>
             </div>
             <ul id="highlight_list">
-            </ul>     
+            </ul>  
+            <!-- <button id="myBtn">Open Modal</button>   -->
+            <div id="myModal" class="modal">
+
+              <div class="modal-content">
+                <div class="modal-header">
+                  <span class="close">&times;</span>
+                  <h2>Are you sure you want to delete this highlight?</h2>
+                </div>
+                <button id="yes_delete">Yes</button>
+                <button id="no_delete">No</button>
+              </div>
+            
+            </div>
+             
           </div>     
         </div>
       </div>
