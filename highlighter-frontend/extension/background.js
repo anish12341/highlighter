@@ -12,7 +12,9 @@ const postHighlight = async (url = '', data = {}) => {
     },
     body: JSON.stringify(data)
   });
-  return response.json();
+  let resJson = await response.json();
+  console.log("I want to send post::", resJson);
+  return resJson;
 };
 
 module.exports = {postHighlight};
@@ -44,10 +46,12 @@ module.exports = {userLoggedIn};
 const beforeHighlight = require('./beforeHighlight/highlight.js');
 const afterHighlight = require('./afterHighlight/highlight.js');
 const beforeHighlight_popup = require('../popup/beforeHighlight_popup/highlight.js');
+const afterHighlight_popup = require('../popup/afterHighlight_popup/highlight.js');
 
 // This flag remembers that there's something to highlight after returing from login/signup
 var previousHighlight = false;
 var dataToHighlight = null;
+var host = 'http://127.0.0.1:3000';
 
 /**
  * Specifies on which URLs background scripts would be activated.
@@ -68,13 +72,9 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 /**
- * This listener listens for any messages coming from content scripts and takes appropriate
- * actions.
+ * Message listener async
  */
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => { 
-  // Call the callback function
-  console.log("I have a message::", request.data);
-  console.log("Sender: ", sender);
+const asyncMessageListener = async (request, sender) => {
   if (request.message === 'setText') {
     let userLoggedIn = await beforeHighlight.userLoggedIn();
     var dataToSend = {
@@ -85,8 +85,9 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     }
     if(userLoggedIn.isLoggedIn) {
       dataToSend.userid = userLoggedIn.userData.id;
-      afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend);
-      console.log('User already loggedIn');
+      let postedHighlight = await afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend);
+      console.log("Hey I want to send something: ", postedHighlight);
+      return postedHighlight;
     } else {
       // Setting a state which will be used to know that there is a highlight on hold before going to login/signup
       previousHighlight = true;
@@ -95,12 +96,34 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       await chrome.storage.sync.set({leavingFrom: sender.tab.id});
       beforeHighlight_popup.openLogin();
       console.log('User NOT logged IN');
+      return undefined
     }
   } else if (request.message === 'checkPopup') {
     await chrome.storage.sync.set({ openPopup: false });
     await chrome.storage.sync.set({ page: 1 });
+    return undefined;
+  } else if (request.message === 'deleteHighlight') {
+    let highlighterid = request.highlighterid;
+    console.log("I want to delete from content");
+    await afterHighlight_popup.useAPI('deleteHighlight'
+    ,'DELETE', `${host}/highlights/`, {highlighterid});
+    return undefined;
   }
-  sendResponse(request.message); 
+  // sendResponse(request.message); 
+}
+
+/**
+ * This listener listens for any messages coming from content scripts and takes appropriate
+ * actions.
+ */
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { 
+  // Call the callback function
+  console.log("I have a message::", request.data, sendResponse);
+  console.log("Sender: ", sender);
+  asyncMessageListener(request, sender).then((response) => {
+      sendResponse(response);
+  });
+  return true;
 });
 
 /**
@@ -141,7 +164,101 @@ chrome.runtime.onMessageExternal.addListener(
       });
     }
   });
-},{"../popup/beforeHighlight_popup/highlight.js":4,"./afterHighlight/highlight.js":1,"./beforeHighlight/highlight.js":2}],4:[function(require,module,exports){
+},{"../popup/afterHighlight_popup/highlight.js":4,"../popup/beforeHighlight_popup/highlight.js":5,"./afterHighlight/highlight.js":1,"./beforeHighlight/highlight.js":2}],4:[function(require,module,exports){
+var host = 'http://127.0.0.1:3000';
+
+/**
+ * General method to handle error 
+ */
+const handleError = () => {
+  return new Promise (
+    async (resolve, reject) => {
+      console.log('Faced an error');
+      let loaderDiv = document.getElementById('loader_div');
+      let scrollingUL = document.getElementById('highlight_list');
+      if (loaderDiv != undefined) {
+        loaderDiv.style.display = 'none';
+      }
+      if (scrollingUL != undefined) {
+        scrollingUL.style.display = 'none';
+      }
+      document.getElementById('no_highlight_p').innerHTML = "Sorry, We ran into an error! :(";
+      document.getElementById('no_highlight_div').style.display = 'flex';
+      return resolve();
+    }
+  )
+}
+
+/**
+ * Method to open tab from highlights
+ */
+const urlFromHighlight = (url) => {
+  chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
+    chrome.tabs.create({url, active: true}, (tabs) => {
+    });
+    // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
+  });
+}
+
+/**
+ * Method to interact with back-end through APIs
+ */
+
+const useAPI = (objective = '', method = '', url = '', data = {}) => {
+  return new Promise (
+    async (resolve, reject) => {
+      let paylod = {};
+      if (objective == 'fetchHighlights') {
+        if (method == 'GET') {
+          let query = Object.keys(data)
+             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
+             .join('&');
+          url = url + query;
+          paylod = {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        }
+      } else if (objective == 'deleteHighlight') {
+        if (method == 'DELETE') {
+          paylod = {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          }
+        }
+      }
+      fetch(url, paylod)
+      .then(async (response) => {
+        let resJson = await response.json();
+        console.log('highlight status: ', resJson);
+        if (resJson.status) {
+          return resolve(resJson);
+        } else {
+          return reject();
+        }
+      })
+      .catch(async (error) => {
+        return reject(error);
+      });
+    }
+  );
+};
+
+const deleteHighlight = () => {
+  return new Promise (
+    async (resolve, reject) => {
+
+    }
+  )
+};
+
+module.exports = {urlFromHighlight, useAPI, handleError};
+},{}],5:[function(require,module,exports){
 // A module within popup functionality
 
 /**

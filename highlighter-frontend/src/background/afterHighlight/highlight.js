@@ -11,7 +11,9 @@ const postHighlight = async (url = '', data = {}) => {
     },
     body: JSON.stringify(data)
   });
-  return response.json();
+  let resJson = await response.json();
+  console.log("I want to send post::", resJson);
+  return resJson;
 };
 
 module.exports = {postHighlight};

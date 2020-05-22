@@ -18,18 +18,99 @@ const userLoggedIn = () => {
 
 module.exports = {userLoggedIn};
 },{}],2:[function(require,module,exports){
+var host = 'http://127.0.0.1:3000';
+
+/**
+ * General method to handle error 
+ */
+const handleError = () => {
+  return new Promise (
+    async (resolve, reject) => {
+      console.log('Faced an error');
+      let loaderDiv = document.getElementById('loader_div');
+      let scrollingUL = document.getElementById('highlight_list');
+      if (loaderDiv != undefined) {
+        loaderDiv.style.display = 'none';
+      }
+      if (scrollingUL != undefined) {
+        scrollingUL.style.display = 'none';
+      }
+      document.getElementById('no_highlight_p').innerHTML = "Sorry, We ran into an error! :(";
+      document.getElementById('no_highlight_div').style.display = 'flex';
+      return resolve();
+    }
+  )
+}
+
 /**
  * Method to open tab from highlights
  */
 const urlFromHighlight = (url) => {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
-      chrome.tabs.create({url, active: true}, (tabs) => {
-      });
-      // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
+  chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
+    chrome.tabs.create({url, active: true}, (tabs) => {
     });
-  }
+    // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
+  });
+}
 
-  module.exports = {urlFromHighlight};
+/**
+ * Method to interact with back-end through APIs
+ */
+
+const useAPI = (objective = '', method = '', url = '', data = {}) => {
+  return new Promise (
+    async (resolve, reject) => {
+      let paylod = {};
+      if (objective == 'fetchHighlights') {
+        if (method == 'GET') {
+          let query = Object.keys(data)
+             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
+             .join('&');
+          url = url + query;
+          paylod = {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        }
+      } else if (objective == 'deleteHighlight') {
+        if (method == 'DELETE') {
+          paylod = {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          }
+        }
+      }
+      fetch(url, paylod)
+      .then(async (response) => {
+        let resJson = await response.json();
+        console.log('highlight status: ', resJson);
+        if (resJson.status) {
+          return resolve(resJson);
+        } else {
+          return reject();
+        }
+      })
+      .catch(async (error) => {
+        return reject(error);
+      });
+    }
+  );
+};
+
+const deleteHighlight = () => {
+  return new Promise (
+    async (resolve, reject) => {
+
+    }
+  )
+};
+
+module.exports = {urlFromHighlight, useAPI, handleError};
 },{}],3:[function(require,module,exports){
 // A module within popup functionality
 
@@ -129,38 +210,8 @@ const afterHighlight_popup = require('./afterHighlight_popup/highlight.js');
 const beforeHighlight_background = require('../background/beforeHighlight/highlight.js');
 var userDetails, scrollingUL, loaderDiv;
 var anchorHighlight;
-
-/**
- * Method to fetch highlights of current logged in user
- */
-
-const fetchHighlights = (url = '', data = {}) => {
-  return new Promise (
-    async (resolve, reject) => {
-      let query = Object.keys(data)
-             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
-             .join('&');
-      fetch(url+query, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(async (response) => {
-        let resJson = await response.json();
-        console.log('highlight status: ', resJson);
-        if (resJson.status) {
-          return resolve(resJson);
-        } else {
-          return reject();
-        }
-      })
-      .catch(async (error) => {
-        return reject(error);
-      });
-    }
-  );
-};
+var host = 'http://127.0.0.1:3000';
+var to_include = 0;
 
 /**
  * Method to map scrolling with pagination on get highlights API
@@ -205,6 +256,7 @@ const populateHighlights = (userInfo,mainUL) => {
   return new Promise (
     async (resolve, reject) => {
       chrome.storage.sync.get('page', async (data) => {
+        await chrome.extension.getBackgroundPage().console.log('Populating: ', to_include);
         try {
           var page = data.page;
           if (page == undefined) {
@@ -217,8 +269,8 @@ const populateHighlights = (userInfo,mainUL) => {
             try {
               var state = data.openPopup;
               console.log('My state:: ', state);
-              let highlights;
-              highlights = await fetchHighlights('http://127.0.0.1:3000/highlights?', {userid: userInfo.userData.id, page}); 
+              let highlights = await afterHighlight_popup.useAPI('fetchHighlights'
+                          ,'GET', `${host}/highlights?`, {userid: userInfo.userData.id, page, to_include}); 
               if (highlights.data.length == 0 && page == 1) {
                 loaderDiv.style.display = 'none';
                 document.getElementById('no_highlight_div').style.display = 'flex';
@@ -227,6 +279,11 @@ const populateHighlights = (userInfo,mainUL) => {
                 console.log('My highlights:: ', highlights);
 
                 highlights.data.forEach(eachHighlight => {
+                  let mainAnchor = document.createElement('a');
+                  mainAnchor.classList.add('no_decoration');
+                  mainAnchor.href = eachHighlight.url;
+                  mainAnchor.onclick = () => {afterHighlight_popup.urlFromHighlight(eachHighlight.url)};
+
                   let UL = document.createElement('ul');
                   UL.classList.add('each_highlight');
 
@@ -243,7 +300,15 @@ const populateHighlights = (userInfo,mainUL) => {
                   li2.appendChild(anchor);
                   UL.appendChild(li1);
                   UL.appendChild(li2);
-                  mainUL.appendChild(UL);
+                  mainAnchor.appendChild(UL);
+                  mainUL.appendChild(mainAnchor);
+                 
+                  let iElement = document.createElement('i');
+                  iElement.classList.add('delete_sign');
+                  iElement.classList.add('fas');
+                  iElement.classList.add('fa-trash-alt');
+                  iElement.onclick = () => {modalOperation(mainAnchor, iElement, eachHighlight.id)};
+                  mainUL.appendChild(iElement);
                 });
                 mainUL.style.display = 'inline-block';
                 loaderDiv.style.display = 'none';
@@ -263,6 +328,8 @@ const populateHighlights = (userInfo,mainUL) => {
   )
 }
 
+
+
 /**
  * Method to set that popup was open
  */
@@ -281,7 +348,7 @@ $(document).ready(async () => {
   $('#highlight_list').bind('scroll', async () => {
       // await chrome.extension.getBackgroundPage().console.log('Scrolling using jQuery');
       // await chrome.extension.getBackgroundPage().console.log($('#highlight_list').scrollTop(), $('#highlight_list').innerHeight(), $('#highlight_list')[0].scrollHeight);
-      if($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight()>=($('#highlight_list')[0].scrollHeight-5))
+      if($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight()>=($('#highlight_list')[0].scrollHeight-0.4))
       {
         // await chrome.extension.getBackgroundPage().console.log("I am at the end", userDetails);
         if (userDetails != undefined && scrollingUL != undefined) {
@@ -293,12 +360,12 @@ $(document).ready(async () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    afterHighlight_popup.to_include = 0;
     await setOpenPage();
 
 
     let beforeLogin = document.getElementById('before_login');
     let afterLogin = document.getElementById('after_login');  
-
 
     // A method to check whether user is logged in or not
     let isUserLoggedIn = await beforeHighlight_background.userLoggedIn();
@@ -337,7 +404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } else {
       try {
-        // chrome.extension.getBackgroundPage().console.log('I am NOT already logged IN', beforeLogin.style.display);    
+        await chrome.extension.getBackgroundPage().console.log('I am NOT already logged IN', beforeLogin.style.display);    
       
         // Make "beforeLogin" part visible from popup.html if user is NOT logged in
         beforeLogin.style.display = 'block';
@@ -352,26 +419,52 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+const modalOperation = (mainAnchor, iElement, highlighterid) => {
+  // Get the modal
+  var modal = document.getElementById('myModal');
 
-// chrome.tabs.executeScript( {
-//   code: "window.getSelection().toString();"
-// }, function(selection) {
-//   document.getElementById("output").innerHTML = selection[0];
-// });
+  // Get the <span> element that closes the modal
+  var span = document.getElementsByClassName('close')[0];
 
-// function onPageDetailsReceived(details) {
-// 	document.getElementById('output').innerText = details.summary;
-// }
-// // When the popup HTML has loaded
-// window.addEventListener('load', function(evt) {
-//   // Get the event page
-//   console.log("Here in event listener");
-//   chrome.runtime.getBackgroundPage(function(eventPage) {
-//       console.log("Here in event listener");    
-//       // Call the getPageInfo function in the event page, passing in 
-//       // our onPageDetailsReceived function as the callback. This injects 
-//       // content.js into the current tab's HTML
-//       eventPage.getPageDetails(onPageDetailsReceived);
-//       });
-//   });
+  var yes_delete = document.getElementById('yes_delete');
+  var no_delete = document.getElementById('no_delete');
+
+  // When the user clicks the delete button, open the modal 
+  modal.style.display = "block";
+
+  // When the user clicks on <span> (x), close the modal
+  span.onclick = () => {
+    modal.style.display = 'none';
+  };
+
+  yes_delete.onclick = async () => {
+    try {
+      to_include += 1;
+      await chrome.extension.getBackgroundPage().console.log('Yes clicked: ', to_include);
+      await afterHighlight_popup.useAPI('deleteHighlight'
+                          ,'DELETE', `${host}/highlights/`, {highlighterid});
+      // Convert delete sign i element to jquery object to use remove object!
+      var jqueryObj = $(iElement);
+      jqueryObj.remove();
+
+      mainAnchor.innerHTML = '';
+      modal.style.display = 'none';
+    } catch(error) {
+      await handleError();
+    }
+  };
+
+  no_delete.onclick = () => {
+    modal.style.display = 'none';
+  }
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = (event) => {
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  };
+};
+
+module.exports = {handleError};
 },{"../background/beforeHighlight/highlight.js":1,"./afterHighlight_popup/highlight.js":2,"./beforeHighlight_popup/highlight.js":3}]},{},[4]);

@@ -52,6 +52,7 @@ document.addEventListener('mouseup', (event) =>
   }
 });
 
+
 /** This listener is used when user clicks on any other part of the web page so that I can delete already popped
  * up div which says "Highlight Me!"
  * */ 
@@ -107,3 +108,4 @@ const getDivConfiguration = (object, event) => {
                this.style.backgroundColor='#ffff4d'">Highlight Me!</button>`;
   return object;
 };
+
