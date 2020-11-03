@@ -57,7 +57,7 @@ const urlFromHighlight = (url) => {
  * Method to interact with back-end through APIs
  */
 
-const useAPI = (objective = '', method = '', url = '', data = {}) => {
+const useAPI = (objective = '', method = '', url = '', data = {}, accesstoken = '') => {
   return new Promise (
     async (resolve, reject) => {
       let paylod = {};
@@ -70,7 +70,8 @@ const useAPI = (objective = '', method = '', url = '', data = {}) => {
           paylod = {
             method,
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'authorization': `bearer ${accesstoken}`
             }
           }
         }
@@ -79,7 +80,8 @@ const useAPI = (objective = '', method = '', url = '', data = {}) => {
           paylod = {
             method,
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'authorization': `bearer ${accesstoken}`
             },
             body: JSON.stringify(data)
           }
@@ -147,7 +149,7 @@ const openSignup = () => {
  * is logged in
  */
 const logout = async () => {
-  // chrome.extension.getBackgroundPage().console.log('Logout button is clicked after!');
+  console.log('Logout button is clicked after!');
   await registerLoginSignup();
   chrome.storage.sync.clear();
 }
@@ -270,7 +272,12 @@ const populateHighlights = (userInfo,mainUL) => {
               var state = data.openPopup;
               console.log('My state:: ', state);
               let highlights = await afterHighlight_popup.useAPI('fetchHighlights'
-                          ,'GET', `${host}/highlights?`, {userid: userInfo.userData.id, page, to_include}); 
+                          ,'GET', `${host}/highlights?`, {
+                            userid: userInfo.userData.id, 
+                            type: 'popup',
+                            page, 
+                            to_include
+                          }, userInfo.userData.accesstoken); 
               if (highlights.data.length == 0 && page == 1) {
                 loaderDiv.style.display = 'none';
                 document.getElementById('no_highlight_div').style.display = 'flex';
@@ -307,7 +314,7 @@ const populateHighlights = (userInfo,mainUL) => {
                   iElement.classList.add('delete_sign');
                   iElement.classList.add('fas');
                   iElement.classList.add('fa-trash-alt');
-                  iElement.onclick = () => {modalOperation(mainAnchor, iElement, eachHighlight.id)};
+                  iElement.onclick = () => {modalOperation(mainAnchor, iElement, eachHighlight.id, userInfo)};
                   mainUL.appendChild(iElement);
                 });
                 mainUL.style.display = 'inline-block';
@@ -391,14 +398,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Set user details
         userDetails = isUserLoggedIn;
 
-        // Populate highlights for user
-        await populateHighlights(isUserLoggedIn,scrollingUL);
-        
         // Set event on logout button
         logoutButton.onclick = (element) => {
           beforeHighlight_popup.logout();
           beforeHighlight_popup.hideShowLogin('logout', {beforeLogin, afterLogin});
         };
+        // Populate highlights for user
+        await populateHighlights(isUserLoggedIn,scrollingUL);
       } catch(error) {
         await handleError();
       }
@@ -419,7 +425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-const modalOperation = (mainAnchor, iElement, highlighterid) => {
+const modalOperation = (mainAnchor, iElement, highlighterid,userInfo) => {
   // Get the modal
   var modal = document.getElementById('myModal');
 
@@ -442,7 +448,7 @@ const modalOperation = (mainAnchor, iElement, highlighterid) => {
       to_include += 1;
       await chrome.extension.getBackgroundPage().console.log('Yes clicked: ', to_include);
       await afterHighlight_popup.useAPI('deleteHighlight'
-                          ,'DELETE', `${host}/highlights/`, {highlighterid});
+                          ,'DELETE', `${host}/highlights/`, {highlighterid, userid: userInfo.userData.id}, userInfo.userData.accesstoken);
       // Convert delete sign i element to jquery object to use remove object!
       var jqueryObj = $(iElement);
       jqueryObj.remove();

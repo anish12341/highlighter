@@ -1,6 +1,6 @@
 {
   "development": {
-    "username": "postgres",
+    "username": "root",
     "password": "root",
     "database": "highlighter-dev",
     "host": "127.0.0.1",

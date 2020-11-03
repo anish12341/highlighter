@@ -2,13 +2,14 @@
 /**
  * Method to post highlight
  */
-const postHighlight = async (url = '', data = {}) => {
+const postHighlight = async (url = '', data = {}, accesstoken = '') => {
   // Default options are marked with *
   console.log("I want to send post");
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'authorization': `bearer ${accesstoken}`
     },
     body: JSON.stringify(data)
   });
@@ -53,6 +54,19 @@ var previousHighlight = false;
 var dataToHighlight = null;
 var host = 'http://127.0.0.1:3000';
 
+chrome.runtime.onConnect.addListener(() => {
+  console.log("Connect");
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+    chrome.declarativeContent.onPageChanged.addRules([{
+      conditions: [new chrome.declarativeContent.PageStateMatcher({
+        pageUrl: {hostContains: ''},
+      })
+      ],
+      actions: [new chrome.declarativeContent.ShowPageAction()]
+    }]);
+  });
+})
+
 /**
  * Specifies on which URLs background scripts would be activated.
  */
@@ -66,7 +80,7 @@ chrome.runtime.onInstalled.addListener(() => {
         pageUrl: {hostContains: ''},
       })
       ],
-          actions: [new chrome.declarativeContent.ShowPageAction()]
+      actions: [new chrome.declarativeContent.ShowPageAction()]
     }]);
   });
 });
@@ -75,39 +89,56 @@ chrome.runtime.onInstalled.addListener(() => {
  * Message listener async
  */
 const asyncMessageListener = async (request, sender) => {
-  if (request.message === 'setText') {
-    let userLoggedIn = await beforeHighlight.userLoggedIn();
-    var dataToSend = {
-      selected_html: request.data,
-      xpath: request.xpath,
-      url: sender.url,
-      url_title: sender.tab.title
+  try {
+    if (request.message === 'setText') {
+      let userLoggedIn = await beforeHighlight.userLoggedIn();
+      var dataToSend = {
+        selected_html: request.data,
+        xpath: request.xpath,
+        url: sender.url,
+        url_title: sender.tab.title
+      }
+      if(userLoggedIn.isLoggedIn) {
+        dataToSend.userid = userLoggedIn.userData.id;
+        let postedHighlight = await afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend, userLoggedIn.userData.accesstoken);
+        console.log("Hey I want to send something: ", postedHighlight);
+        return postedHighlight;
+      } else {
+        // Setting a state which will be used to know that there is a highlight on hold before going to login/signup
+        previousHighlight = true;
+        dataToHighlight = dataToSend;
+  
+        await chrome.storage.sync.set({leavingFrom: sender.tab.id});
+        beforeHighlight_popup.openLogin();
+        console.log('User NOT logged IN');
+        return undefined
+      }
+    } else if (request.message === 'checkPopup') {
+      await chrome.storage.sync.set({ openPopup: false });
+      await chrome.storage.sync.set({ page: 1 });
+      return undefined;
+    } else if (request.message === 'deleteHighlight') {
+      let highlighterid = request.highlighterid;
+      console.log("I want to delete from content");
+      await afterHighlight_popup.useAPI('deleteHighlight'
+      ,'DELETE', `${host}/highlights/`, {highlighterid, userid: request.user.userData.id}, request.user.userData.accesstoken);
+      return undefined;
+    } else if (request.message === 'getUser') {
+      console.log("Getting user for content");
+      let isUserLoggedIn = await beforeHighlight.userLoggedIn();
+      return isUserLoggedIn;
+    } else if (request.message === 'getHighlight') {
+      console.log("Getting highlights");
+      let highlights = await afterHighlight_popup.useAPI('fetchHighlights'
+        ,'GET', `${host}/highlights?`, {
+          userid: request.userid, 
+          type: 'content',
+          url: sender.url
+        }, request.accesstoken); 
+      return highlights;
     }
-    if(userLoggedIn.isLoggedIn) {
-      dataToSend.userid = userLoggedIn.userData.id;
-      let postedHighlight = await afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend);
-      console.log("Hey I want to send something: ", postedHighlight);
-      return postedHighlight;
-    } else {
-      // Setting a state which will be used to know that there is a highlight on hold before going to login/signup
-      previousHighlight = true;
-      dataToHighlight = dataToSend;
+  } catch (error) {
 
-      await chrome.storage.sync.set({leavingFrom: sender.tab.id});
-      beforeHighlight_popup.openLogin();
-      console.log('User NOT logged IN');
-      return undefined
-    }
-  } else if (request.message === 'checkPopup') {
-    await chrome.storage.sync.set({ openPopup: false });
-    await chrome.storage.sync.set({ page: 1 });
-    return undefined;
-  } else if (request.message === 'deleteHighlight') {
-    let highlighterid = request.highlighterid;
-    console.log("I want to delete from content");
-    await afterHighlight_popup.useAPI('deleteHighlight'
-    ,'DELETE', `${host}/highlights/`, {highlighterid});
-    return undefined;
   }
   // sendResponse(request.message); 
 }
@@ -121,8 +152,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("I have a message::", request.data, sendResponse);
   console.log("Sender: ", sender);
   asyncMessageListener(request, sender).then((response) => {
+      response.success = true;
       sendResponse(response);
-  });
+  })
+  .catch((error) => {
+    error.success = false;
+    sendResponse(error);
+  }) ;
   return true;
 });
 
@@ -204,7 +240,7 @@ const urlFromHighlight = (url) => {
  * Method to interact with back-end through APIs
  */
 
-const useAPI = (objective = '', method = '', url = '', data = {}) => {
+const useAPI = (objective = '', method = '', url = '', data = {}, accesstoken = '') => {
   return new Promise (
     async (resolve, reject) => {
       let paylod = {};
@@ -217,7 +253,8 @@ const useAPI = (objective = '', method = '', url = '', data = {}) => {
           paylod = {
             method,
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'authorization': `bearer ${accesstoken}`
             }
           }
         }
@@ -226,7 +263,8 @@ const useAPI = (objective = '', method = '', url = '', data = {}) => {
           paylod = {
             method,
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'authorization': `bearer ${accesstoken}`
             },
             body: JSON.stringify(data)
           }
@@ -294,7 +332,7 @@ const openSignup = () => {
  * is logged in
  */
 const logout = async () => {
-  // chrome.extension.getBackgroundPage().console.log('Logout button is clicked after!');
+  console.log('Logout button is clicked after!');
   await registerLoginSignup();
   chrome.storage.sync.clear();
 }

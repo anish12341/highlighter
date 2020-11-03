@@ -9,7 +9,42 @@ const afterHighlight = require('./afterHighlight/highlight.js');
 
 let flag = 0;
 let isDivThere = false;
-console.log("I am here");
+
+/**
+ * When page loads get all the highlights for that page
+ */
+window.addEventListener('load',(event) => {
+  chrome.runtime.sendMessage({'message':'getUser'}, (userDetails) => {
+    console.log("USER DETAILS:::::::: ", userDetails);
+    if (userDetails.isLoggedIn) {
+      chrome.runtime.sendMessage({'message':'getHighlight', 'userid': userDetails.userData.id, 'accesstoken': userDetails.userData.accesstoken}, (highlights) => {
+        if (highlights.success) {
+          console.log("Highlights for this page:::::::: ", highlights);
+          highlights.data.forEach(each => {
+            afterHighlight.highlight(each.xpath, each.selected_html, each.id);
+          });
+        }
+      });
+    }
+  });
+})
+
+/**
+ * Check whether the selected element contains another highlight
+ */
+const anotherHighlight = (selectedHTML) => {
+  console.log("Calling another");
+  let element = document.createElement('div');
+  element.innerHTML = selectedHTML;
+  console.log("Length of parent::::", element.childElementCount);
+  for (let i = 0; i < element.childNodes.length; i++) {
+    console.log(element.childNodes[i].dataset);
+    if (element.childNodes[i].dataset && element.childNodes[i].dataset.highlight) {
+      return false;
+    }
+  }
+  return true;
+};
 
 /**
  * This listener is used when user stops dragging the mouse and mouse is up
@@ -43,12 +78,17 @@ document.addEventListener('mouseup', (event) =>
     // Get xPath of the element so that it can be identified later on
     let xPath = beforeHighlight.getPathInitial(event);
     
-    // Preparing a div so that it can be displayed as "Highlight Me!"
-    let decisionDiv = document.createElement("DIV");
-    decisionDiv = getDivConfiguration(decisionDiv, event);
-    document.body.appendChild(decisionDiv);
-    isDivThere = true;
-    beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
+    console.log("before another: ", anotherHighlight(selectedHTML));
+    // Check whether the element contains another highlight
+    if (anotherHighlight(selectedHTML)) {
+      console.log("Coming inside");
+      // Preparing a div so that it can be displayed as "Highlight Me!"
+      let decisionDiv = document.createElement("DIV");
+      decisionDiv = getDivConfiguration(decisionDiv, event);
+      document.body.appendChild(decisionDiv);
+      isDivThere = true;
+      beforeHighlight.onHighlightClick(decisionDiv, xPath, selectedHTML);
+    }
   }
 });
 
@@ -61,7 +101,10 @@ document.addEventListener('mousedown', async (event) =>
   // await checkPopup();
   flag = 0;
   if (isDivThere && event.target && event.target.id != 'highlightme') {
-    document.getElementById('decision-popup').remove();
+    let highlightDiv = document.getElementById('decision-popup');
+    if (highlightDiv != undefined) {
+      highlightDiv.remove();
+    }
     isDivThere = false;
   }
 });

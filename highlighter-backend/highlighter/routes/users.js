@@ -4,6 +4,9 @@ var router = express.Router();
 const Joi = require('joi');
 const async = require('async');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const env = process.env;
+const auth = require('./auth.js')
 
 //Imported models
 const User = require('../server/models').user;
@@ -34,6 +37,7 @@ router.get('/login', (req, res, next) => {
 
 //Process POST login request
 router.post('/login', (req, res, next) => {
+  debug('Login body: ', req.body);
   const schema = Joi.object().keys({
     password: Joi.string().min(8).required().label('password'),
     email: Joi.string().email({ minDomainAtoms: 2 }).required().label('email')
@@ -69,7 +73,7 @@ router.post('/login', (req, res, next) => {
       debug('Error:', error);
       return res.render('users/login', { iserror: true, errorMessage: error.customMessage ? error.customMessage : 'Something went wrong' });
     }
-    delete result.password;
+    result = auth.generateAccessToken(result);
     return res.render('users/done', { successMessage: 'You are logged in successfully..', data: result });
   });
 });
@@ -133,8 +137,9 @@ router.post('/signup', (req, res, next) => {
     User
       .create(createJson)
       .then(user => {
-        delete user.dataValues.password;
-        return res.render('users/done', { successMessage: 'You have registered yourself successfully..', data: user.dataValues });        
+        // delete user.dataValues.password;
+        let result = auth.generateAccessToken(user.dataValues);
+        return res.render('users/done', { successMessage: 'You have registered yourself successfully..', data: result });        
       })
       .catch(error => {
         return res.render('users/signup', { iserror: true, errorMessage: error.customMessage ? error.customMessage : 'Something went wrong' });

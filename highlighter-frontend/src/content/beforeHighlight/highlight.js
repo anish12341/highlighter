@@ -1,8 +1,10 @@
 const afterHighlight = require('../afterHighlight/highlight.js');
 
+
 //All the custom conditions when Highlight should not work
 const extraTerminatingConditions = (path, selectedText) => {
   console.log('My selected Text::', selectedText);
+  console.log('Path: ', path);
   if (path.nodeName === 'A' 
   || path.nodeName === undefined 
   || (getMultipleElements(selectedText, /^<[\w]+>/)
@@ -61,13 +63,14 @@ const getMultipleElements = (string, regexp) => {
 const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
   decisionDiv.addEventListener('click', (event) => {
     chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath}, (response) => {
-      console.log("Response from background scrsdsipt: ", response);
+      console.log("Response from background script: ", response);
       let highlightid;
       if (response != undefined) {
         highlightid = response.data.id;
       }
+      decisionDiv.remove();
       afterHighlight.highlight(xPath, selectedHTML, highlightid);
-    });    
+    });
   })
 };
 

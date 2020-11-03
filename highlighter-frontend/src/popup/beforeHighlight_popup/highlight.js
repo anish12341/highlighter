@@ -33,7 +33,7 @@ const openSignup = () => {
  * is logged in
  */
 const logout = async () => {
-  // chrome.extension.getBackgroundPage().console.log('Logout button is clicked after!');
+  console.log('Logout button is clicked after!');
   await registerLoginSignup();
   chrome.storage.sync.clear();
 }

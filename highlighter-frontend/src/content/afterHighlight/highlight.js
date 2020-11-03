@@ -4,6 +4,28 @@ const getElementByXpath = (path) => {
 }
 
 /**
+ * Transfer the whole HTML using temporary div element
+ */
+const transferHTML = (element) => {
+  let tempEle = element.cloneNode(true);
+  let tempDiv = document.createElement('div');
+  tempDiv.appendChild(tempEle);
+  // console.log("Temp dev: ", tinnerHTML);
+  return tempDiv.innerHTML;
+};
+
+/**
+ * Register onclick for remaining highlights in the target after deleting
+ */
+const reregisterOnClick = (parentNode) => {
+  parentNode.childNodes.forEach(each => {
+    if (each.dataset && each.dataset.highlight) {
+      each.onclick = () => {highlightClicked(each)};
+    }
+  })
+}
+
+/**
  * Delete span element after deleting highlight
  */
 const eliminateSpan = (spanElement, highlightid) => {
@@ -13,20 +35,24 @@ const eliminateSpan = (spanElement, highlightid) => {
   let parentHTML = '';
   parent.childNodes.forEach(element => {
     console.log("inner: ", element.data, element.innerHTML, element.tagName);
-    if (element.dataset && element.dataset.highlight && element.dataset.highlightid == highlightid) {
+    if (element.dataset && element.dataset.highlight) {
       console.log("IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-      parentHTML += element.innerHTML;
+      if (element.dataset.highlightid == highlightid) {
+        parentHTML += element.innerHTML;
+      } else {
+        console.log("I am another");
+        parentHTML += transferHTML(element);
+        element.onclick = () => highlightClicked(element);
+      }
     } else if (element.tagName != undefined) {
-      let tempEle = element.cloneNode(true);
-      let tempDiv = document.createElement('div');
-      tempDiv.appendChild(tempEle);
-      parentHTML += element.innerHTML;
+      parentHTML += transferHTML(element);
     } else {
       parentHTML += element.data;
     }
   });
   console.log("Parent html: ", parentHTML);
   parent.innerHTML = parentHTML;
+  reregisterOnClick(parent);
 }
 
 /**
@@ -112,9 +138,11 @@ const highlightClicked = (element) => {
   });
 
   deleteButton.onclick = () => {
-    chrome.runtime.sendMessage({'message':'deleteHighlight', 'highlighterid': element.dataset.highlightid}, (response) => {
-      eliminateDelete(de, d, element);
-      eliminateSpan(element, element.dataset.highlightid);
+    chrome.runtime.sendMessage({'message':'getUser'}, (user) => {
+      chrome.runtime.sendMessage({'message':'deleteHighlight', 'highlighterid': element.dataset.highlightid, user}, (response) => {
+        eliminateDelete(de, d, element);
+        eliminateSpan(element, element.dataset.highlightid);
+      });
     });
   }
   d.appendChild(deleteButton);
@@ -152,4 +180,4 @@ const highlight = (path, selectedText, highlightid = undefined) => {
   }
 }
 
-module.exports = {highlight};
+module.exports = {highlight, getElementByXpath};

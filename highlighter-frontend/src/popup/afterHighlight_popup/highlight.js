@@ -37,7 +37,7 @@ const urlFromHighlight = (url) => {
  * Method to interact with back-end through APIs
  */
 
-const useAPI = (objective = '', method = '', url = '', data = {}) => {
+const useAPI = (objective = '', method = '', url = '', data = {}, accesstoken = '') => {
   return new Promise (
     async (resolve, reject) => {
       let paylod = {};
@@ -50,7 +50,8 @@ const useAPI = (objective = '', method = '', url = '', data = {}) => {
           paylod = {
             method,
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'authorization': `bearer ${accesstoken}`
             }
           }
         }
@@ -59,7 +60,8 @@ const useAPI = (objective = '', method = '', url = '', data = {}) => {
           paylod = {
             method,
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'authorization': `bearer ${accesstoken}`
             },
             body: JSON.stringify(data)
           }
