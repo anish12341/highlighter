@@ -258,7 +258,7 @@ const populateHighlights = (userInfo,mainUL) => {
   return new Promise (
     async (resolve, reject) => {
       chrome.storage.sync.get('page', async (data) => {
-        await chrome.extension.getBackgroundPage().console.log('Populating: ', to_include);
+        // await chrome.extension.getBackgroundPage().console.log('Populating: ', to_include);
         try {
           var page = data.page;
           if (page == undefined) {
