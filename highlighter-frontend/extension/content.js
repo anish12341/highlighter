@@ -159,7 +159,6 @@ const highlight = (path, selectedText, highlightid = undefined) => {
   selectedText = selectedText.replace(/\n/g, "");
   selectedText = selectedText.replace(/\s\s/g,' ');
   let index = innerContent.indexOf(selectedText);
-  console.log('Index::', index);
   if (index >= 0) {
     let spanString = innerContent.substring(index,index+selectedText.length);
     let spanElement = document.createElement('span');

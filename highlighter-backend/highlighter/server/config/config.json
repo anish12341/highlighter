@@ -1,7 +1,7 @@
 {
   "development": {
-    "username": "root",
-    "password": "root",
+    "username": "anish",
+    "password": "anish",
     "database": "highlighter-dev",
     "host": "127.0.0.1",
     "port": 5432,
