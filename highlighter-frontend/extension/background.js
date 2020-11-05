@@ -4,7 +4,7 @@
  */
 const postHighlight = async (url = '', data = {}, accesstoken = '') => {
   // Default options are marked with *
-  console.log("I want to send post");
+  console.log("I want to send post", data);
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -50,9 +50,9 @@ const beforeHighlight_popup = require('../popup/beforeHighlight_popup/highlight.
 const afterHighlight_popup = require('../popup/afterHighlight_popup/highlight.js');
 
 // This flag remembers that there's something to highlight after returing from login/signup
-var previousHighlight = false;
-var dataToHighlight = null;
-var host = 'http://127.0.0.1:3000';
+const previousHighlight = false;
+const dataToHighlight = null;
+const host = 'http://127.0.0.1:3000';
 
 chrome.runtime.onConnect.addListener(() => {
   console.log("Connect");
@@ -95,12 +95,13 @@ const asyncMessageListener = async (request, sender) => {
       var dataToSend = {
         selected_html: request.data,
         xpath: request.xpath,
+        highlight_color: request.highlightColor,
         url: sender.url,
         url_title: sender.tab.title
       }
       if(userLoggedIn.isLoggedIn) {
         dataToSend.userid = userLoggedIn.userData.id;
-        let postedHighlight = await afterHighlight.postHighlight(url= 'http://127.0.0.1:3000/highlights/new', data=dataToSend, userLoggedIn.userData.accesstoken);
+        let postedHighlight = await afterHighlight.postHighlight(url= `${host}/highlights/new`, data=dataToSend, userLoggedIn.userData.accesstoken);
         console.log("Hey I want to send something: ", postedHighlight);
         return postedHighlight;
       } else {

@@ -31,16 +31,12 @@ const reregisterOnClick = (parentNode) => {
 const eliminateSpan = (spanElement, highlightid) => {
   // console.log("Span: ", spanElement.innerHTML, spanElement.dataset.highlightid, spanElement.dataset.highlight, highlightid);
   let parent = spanElement.parentNode;
-  console.log("Child count: ", parent.childNodes.length);
   let parentHTML = '';
   parent.childNodes.forEach(element => {
-    console.log("inner: ", element.data, element.innerHTML, element.tagName);
     if (element.dataset && element.dataset.highlight) {
-      console.log("IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
       if (element.dataset.highlightid == highlightid) {
         parentHTML += element.innerHTML;
       } else {
-        console.log("I am another");
         parentHTML += transferHTML(element);
         element.onclick = () => highlightClicked(element);
       }
@@ -50,7 +46,6 @@ const eliminateSpan = (spanElement, highlightid) => {
       parentHTML += element.data;
     }
   });
-  console.log("Parent html: ", parentHTML);
   parent.innerHTML = parentHTML;
   reregisterOnClick(parent);
 }
@@ -150,7 +145,7 @@ const highlightClicked = (element) => {
 /**
  * This method does the work of actually highlighting selected text and changing it's color
  */
-const highlight = (path, selectedText, highlightid = undefined) => {
+const highlight = (path, selectedText, highlightid = undefined, highlightColor = "#ffff4d") => {
   let element = getElementByXpath(path);
   let innerContent = element.innerHTML;
   innerContent = innerContent.replace(/\n/g, "");
@@ -162,7 +157,7 @@ const highlight = (path, selectedText, highlightid = undefined) => {
     let spanString = innerContent.substring(index,index+selectedText.length);
     let spanElement = document.createElement('span');
     spanElement.innerHTML = spanString;
-    spanElement.style.backgroundColor = 'yellow';
+    spanElement.style.backgroundColor = highlightColor;
     spanElement.dataset.highlight = true;
     spanElement.dataset.highlightid = highlightid;
 

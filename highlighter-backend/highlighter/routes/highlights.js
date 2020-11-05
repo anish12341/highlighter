@@ -29,13 +29,14 @@ let successResponse = {
 
 //Process POST request of adding new highlight for user
 router.post('/new', auth.authenticateJWT,(req, res, next) => {
-    debug("Req.body: ", req.body);
+  debug("Req.body: ", req.body);
   const schema = Joi.object().keys({
     userid: Joi.number().required().label('Userid'),
     selected_html: Joi.string().required().label('Selected HTML'),
     url: Joi.string().required().label('URL'),
     xpath: Joi.string().required().label('xPath'),
-    url_title: Joi.string().required().label('URL title')
+    url_title: Joi.string().required().label('URL title'),
+    highlight_color: Joi.string().required().label('Highlight color')
   });
   
   const joiResult = Joi.validate(req.body, schema);
@@ -68,7 +69,6 @@ router.post('/new', auth.authenticateJWT,(req, res, next) => {
 });
 
 router.get('/',  auth.authenticateJWT, (req, res, next) => {
-  debug("Req.body: ", req.query);
   const schema = Joi.object().keys({
     userid: Joi.number().required().label('Userid'),
     type: Joi.string().required().label('Type of query'),

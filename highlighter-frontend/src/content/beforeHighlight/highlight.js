@@ -3,8 +3,6 @@ const afterHighlight = require('../afterHighlight/highlight.js');
 
 //All the custom conditions when Highlight should not work
 const extraTerminatingConditions = (path, selectedText) => {
-  console.log('My selected Text::', selectedText);
-  console.log('Path: ', path);
   if (path.nodeName === 'A' 
   || path.nodeName === undefined 
   || (getMultipleElements(selectedText, /^<[\w]+>/)
@@ -24,7 +22,6 @@ const getPathInitial = (event) => {
 
   let path= getPathTo(target);
   let message =`You clicked the element ${path}`;
-  console.log('New message::', message);  
   return path;
 }
 
@@ -60,18 +57,32 @@ const getMultipleElements = (string, regexp) => {
  * This method send the selected HTML to background script. This is done by setting up a click listener
  * on the newly created div
  */
-const onHighlightClick = (decisionDiv, xPath, selectedHTML) => {
+const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue }) => {
   decisionDiv.addEventListener('click', (event) => {
-    chrome.runtime.sendMessage({'message':'setText','data': selectedHTML, xpath: xPath}, (response) => {
-      console.log("Response from background script: ", response);
+    chrome.runtime.sendMessage({
+      'message':'setText',
+      'data': selectedHTML, 
+      xpath: xPath, 
+      highlightColor: colorPickerValue
+    }, (response) => {
       let highlightid;
       if (response != undefined) {
         highlightid = response.data.id;
       }
       decisionDiv.remove();
-      afterHighlight.highlight(xPath, selectedHTML, highlightid);
+      afterHighlight.highlight(xPath, selectedHTML, highlightid, colorPickerValue);
     });
   })
 };
 
-module.exports = {extraTerminatingConditions, getPathInitial, onHighlightClick};
+const createColorPaletDiv = (color) => {
+  const colorPaletDiv = document.createElement("div");
+  Object.assign(colorPaletDiv.style, {
+    height: '100%',
+    width: '100%',
+    backgroundColor: color
+  });
+  return colorPaletDiv;
+}
+
+module.exports = {extraTerminatingConditions, getPathInitial, onHighlightClick, createColorPaletDiv};
