@@ -3,7 +3,7 @@
  */
 const postHighlight = async (url = '', data = {}, accesstoken = '') => {
   // Default options are marked with *
-  console.log("I want to send post");
+  console.log("I want to send post", data);
   const response = await fetch(url, {
     method: 'POST',
     headers: {

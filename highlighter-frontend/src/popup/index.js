@@ -102,6 +102,10 @@ const populateHighlights = (userInfo,mainUL) => {
                   li2.appendChild(anchor);
                   UL.appendChild(li1);
                   UL.appendChild(li2);
+                  [...UL.children].forEach((each) => {
+                    each.style.backgroundColor = eachHighlight.highlight_color;
+                  });
+
                   mainAnchor.appendChild(UL);
                   mainUL.appendChild(mainAnchor);
                  
