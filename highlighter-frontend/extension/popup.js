@@ -115,6 +115,7 @@ const deleteHighlight = () => {
 module.exports = {urlFromHighlight, useAPI, handleError};
 },{}],3:[function(require,module,exports){
 // A module within popup functionality
+const host = 'http://127.0.0.1:3000';
 
 /**
  * Method to open login screen from backend
@@ -123,7 +124,7 @@ module.exports = {urlFromHighlight, useAPI, handleError};
 const openLogin = () => {
   // chrome.extension.getBackgroundPage().console.log('Loging button is clicked after!');
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
-    chrome.tabs.create({url: 'http://127.0.0.1:3000/users/login', active: true}, (tabs) => {
+    chrome.tabs.create({url: `${host}/users/login`, active: true}, (tabs) => {
       // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
@@ -137,7 +138,7 @@ const openLogin = () => {
 const openSignup = () => {
   // chrome.extension.getBackgroundPage().console.log('Signup button is clicked after!');
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
-    chrome.tabs.create({url: 'http://127.0.0.1:3000/users/signup', active: true}, (tabs) => {
+    chrome.tabs.create({url: `${host}/users/signup`, active: true}, (tabs) => {
       // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
@@ -201,7 +202,20 @@ const setCurrentTab = () => {
   });
 };
 
-module.exports = {openLogin, openSignup, logout, hideShowLogin, registerLoginSignup, setCurrentTab};
+/**
+ * Method to take users to collaboration space page
+ */
+const openSpaces = ({ usertoken = "" }) => {
+  chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
+    chrome.tabs.create({url: `${host}/spaces?usertoken=${usertoken}`, active: true}, (tabs) => {
+      // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
+    })
+    // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
+  });
+}
+
+
+module.exports = {openLogin, openSignup, logout, hideShowLogin, registerLoginSignup, setCurrentTab, openSpaces};
 },{}],4:[function(require,module,exports){
 // This file is used to access the chrome extension popup
 // All the html elements being accessed here are from popup.html
@@ -397,7 +411,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         
         // scrollingUL.onscroll = scrolled(scrollingUL);
-        let logoutButton = document.getElementById('logout_button');
+        const logoutButton = document.getElementById('logout_button');
+        const spacesButton = document.getElementById('spaces_button');
 
         // Set user details
         userDetails = isUserLoggedIn;
@@ -407,6 +422,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           beforeHighlight_popup.logout();
           beforeHighlight_popup.hideShowLogin('logout', {beforeLogin, afterLogin});
         };
+
+        // Open /spaces for particular user when spaces button is clicked
+        spacesButton.onclick = () => {
+          if (userDetails.isLoggedIn) {
+            beforeHighlight_popup.openSpaces({ usertoken: userDetails.userData.accesstoken });
+          }
+        }
         // Populate highlights for user
         await populateHighlights(isUserLoggedIn,scrollingUL);
       } catch(error) {

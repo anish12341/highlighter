@@ -192,7 +192,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         
         // scrollingUL.onscroll = scrolled(scrollingUL);
-        let logoutButton = document.getElementById('logout_button');
+        const logoutButton = document.getElementById('logout_button');
+        const spacesButton = document.getElementById('spaces_button');
 
         // Set user details
         userDetails = isUserLoggedIn;
@@ -202,6 +203,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           beforeHighlight_popup.logout();
           beforeHighlight_popup.hideShowLogin('logout', {beforeLogin, afterLogin});
         };
+
+        // Open /spaces for particular user when spaces button is clicked
+        spacesButton.onclick = () => {
+          if (userDetails.isLoggedIn) {
+            beforeHighlight_popup.openSpaces({ usertoken: userDetails.userData.accesstoken });
+          }
+        }
         // Populate highlights for user
         await populateHighlights(isUserLoggedIn,scrollingUL);
       } catch(error) {

@@ -5,7 +5,7 @@ button {
   }
   
   #loggedin_main {
-    width: 300px;
+    width: 400px;
     height: 300px;
     border: 1px solid black;
     display: flex;
@@ -13,29 +13,30 @@ button {
     align-items: center;
     justify-content: center;
   }
-  .btn-group {
+  .btn-group1 {
     width: 100%;
     height: 100%;
   }
-  .btn-group button {
+  .btn-group1 button {
     background-color: #f4f442; /* Green background */
     border: 1px solid black; /* Green border */
     cursor: pointer; /* Pointer/hand icon */
-    width: 50%; /* Set a width if needed */
+    width: 40%; /* Set a width if needed */
     /* display: none; Make the buttons appear below each other */
-    margin-top: 25%;
-    margin-left: 25%;
+    /* margin-top: 25%; */
+    margin-left: 6.66%;
     color: black;
     border-radius: 5px;
     font-family: monospace;
+    display: inline;
   }
 
-  .btn-group #logout_button {
+  .btn-group1 #logout_button {
     margin-top: 2%;
   }
 
   /* Add a background color on hover */
-  .btn-group button:hover {
+  .btn-group1 button:hover {
     background-color: black;
     color: white;
   }
@@ -64,7 +65,7 @@ button {
 
   .each_highlight li {
     text-overflow: ellipsis;
-    width: 20em;
+    width: 100%;
     white-space: nowrap;
     overflow: hidden;
     font-family: monospace;
@@ -163,7 +164,7 @@ button {
   background-color:  #ffffff;
   width: 94%;
   padding-inline-start: 0%;
-  height: 258px;
+  height: 250px;
   padding: 0%;
   margin: 0%;
   position: absolute;
@@ -186,4 +187,11 @@ button {
 
 .no_decoration {
   text-decoration: none;
+}
+
+#tabs {
+  width: 100%;
+  height: 20%;
+  display: inline-block;
+  background-color: black;
 }
