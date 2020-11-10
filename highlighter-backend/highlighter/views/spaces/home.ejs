@@ -1,0 +1,203 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="/stylesheets/all.css">
+    <link rel="stylesheet" href="/stylesheets/modal.css">
+    <script src="/javascripts/spaces.js"></script>
+    <style>
+      body {
+        margin: 0;
+      }
+
+      .main-wrapper {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .modal-navigator {
+        background-color: yellow;
+        color: white;
+        height: 10%;
+        border-bottom: 2px solid black;
+        box-shadow: 0 4px 2px -2px gray;
+      }
+      .wrapper-div {
+        vertical-align: middle
+      }
+      .button {
+        background-color: black;
+        display: inline-block;
+        cursor: pointer;
+        width: 10%;
+        height: 40%;
+        color: white;
+        position: relative;
+        border-radius: 5px;
+        font-family: monospace;
+        margin-right: 5%;
+      }
+
+      .button:hover {
+        background-color: white;
+        color: black;
+        border: 1px solid yellow;
+      }
+
+      .modal-navigator {
+        display: table;
+        width: 100%;
+      }
+
+      .wrapper-div {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: right;
+      }
+
+      .main-content {
+        height: 90%;
+      }
+
+      .spaces-list {
+        height: 100%;
+        width: 40%;
+        border-right: 1px solid black;
+        display: table;
+        position: relative;
+        z-index: 0;
+      }
+
+      .spaces {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        z-index: 1;
+      }
+
+      .no-spaces {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 2;
+        text-align: center;
+        /* display: none; */
+      }
+
+      .no-spaces p {
+        margin-top: 40%;
+        padding: 0;
+        font-family: monospace;
+        font-size: 150%;
+      }
+
+      .no-spaces span {
+        background-color: yellow;
+      }
+
+      .create-space {
+        background-color: yellow;
+        border: 2px solid black;
+        height: 10%;
+        width: 12%;
+        position: absolute;
+        border-radius: 50%;
+        z-index: 3;
+        bottom: 0;
+        right: 0;
+        margin-right: 5%;
+        margin-bottom: 5%;
+        cursor: pointer;
+      }
+
+      .create-symbol {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px;
+      }
+
+      .each-space {
+        width: 100%;
+        height: 20%;
+        background-color: yellow;
+      }
+
+      .each-space>div {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-wrapper">
+      <div class="modal-navigator">
+        <div class="wrapper-div">
+          <button type="button" class="button"> Logout </button>
+        </div>
+      </div>
+      <div class="main-content">
+        <div class="spaces-list">
+          <ul class="spaces">
+            <!-- <li class="each-space">
+              <div>
+                Project 1
+              </div>
+            </li> -->
+          </ul>
+          <div class="no-spaces">
+            <p>No <span>collab spaces</span> yet!</p>
+          </div>
+          <div id = "create_space" class="create-space">
+            <i class="create-symbol fas fa-plus fa-lg"></i>
+          </div>
+        </div>
+      </div>
+      <div id="myModal" class="modal">
+
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Create a new collab space</h2>
+          </div>
+          <div class="modal-form">
+              <p class="modal-form-name"> Name:</p>
+              <input id="input_space_name" type="text"/>
+          </div>
+          <div class="modal-form" >
+              <p class="modal-form-name"> Members:</p>
+              <input id="input_space_members" type="text">
+              <div class="member-list">
+                <div class="each-member"><p>pragya</p></div>
+                <div class="each-member"><p>anish</p></div>
+              </div>
+          </div>
+          <div class="modal-form">
+            <div class="added-members">
+              <div class="each-added-member">
+                <p class="each-added-member-name">anish</p>
+                <span class="remove-member">&times;</span>
+              </div>
+              <div class="each-added-member">
+                <p class="each-added-member-name">pragya</p>
+                <span class="remove-member">&times;</span>
+              </div>
+              <div class="each-added-member">
+                <p class="each-added-member-name">sid</p>
+                <span class="remove-member">&times;</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-create-button">Create</button>
+            <button class="modal-cancel-button">Cancel</button>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+  </body>
+</html>
