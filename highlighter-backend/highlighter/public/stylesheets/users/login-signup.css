@@ -1,5 +1,4 @@
-
-.login-page {
+.login-page, .forgot-password-page, .reset-password-page {
   width: 360px;
   padding: 8% 0 0;
   margin: auto;
@@ -43,11 +42,11 @@
   background: black;
   color: white;
 } */
-.form #submit {
+.form #submit, .form button {
   font-family: monospace;
   text-transform: uppercase;
   outline: 0;
-  background: rgb(231, 229, 68);
+  background: yellow;
   width: 100%;
   border: 1px solid black;;
   border-radius: 5px;
@@ -58,16 +57,17 @@
   transition: all 0.3 ease;
   cursor: pointer;
 }
-.form #submit:hover,.form #submit:active,.form #submit:focus {
+.form #submit:hover,.form #submit:active,.form #submit:focus,
+.form button:hover, .form button:active, .form button:focus {
   background: black;
   color: white;
 }
 .form .message {
   margin: 15px 0 0;
-  color: #b3b3b3;
+  color: black;
   font-size: 12px;
 }
-.form .message a {
+.form .message>a {
   color:black;
   text-decoration: underline;
 }
@@ -113,7 +113,10 @@ body {
   background: linear-gradient(to left, #00001a, #00001a);
   font-family: monospace;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;      
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  width: 100%;
+  margin: 0;
 }
 
 #errormessage {
@@ -137,4 +140,18 @@ body {
 
 .done-success {
   font-size: 20px;
+}
+
+#confirm_password {
+  margin-bottom: 0;
+}
+
+#password_message {
+  height: 20%;
+  text-align: left;
+}
+
+form>div {
+  text-align: left;
+  margin-bottom: 5%;
 }
