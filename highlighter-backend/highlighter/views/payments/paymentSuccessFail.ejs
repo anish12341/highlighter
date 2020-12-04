@@ -1,0 +1,26 @@
+<html>
+  <head>
+      <link rel="stylesheet" href="/stylesheets/users/login-signup.css">
+  </head>
+  <body>
+    <script src="/javascripts/extension.js"></script>
+    <div class="login-page">
+      <div class="form">
+        <img id="done-image" src="/images/tick.png">
+        <p class="done-success"><%= successMessage%></p>
+        <h2>You are now Spaces Premium user</h2>
+        <p>You can now create 10 collaboration spaces.</p>
+        <p class="done-success">Keep <span id="done-highlight">Highlighting!! </span> Taking you back in a while....</p>
+        <script>
+        if(<%=isPayment%>) {
+            setTimeout(
+            function() {
+                location.replace("http://127.0.0.1:3000/spaces/<%=userId%>");
+            }, 4000);
+        }
+        </script>
+      </script>
+      </div>
+    </div>
+  </body>
+</html>

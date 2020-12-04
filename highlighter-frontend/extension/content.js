@@ -246,7 +246,7 @@ const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue }
       highlightColor: colorPickerValue
     }, (response) => {
       let highlightid;
-      if (response != undefined) {
+      if (response !== undefined) {
         highlightid = response.data.id;
       }
       decisionDiv.remove();
