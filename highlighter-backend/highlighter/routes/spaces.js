@@ -37,8 +37,9 @@ router.get('/:userId', (req, res, next) => {
   User
       .findOne({where: {id: req.params.userId}})
       .then(user => {
+        console.log(user.isPremium)
         //show/hide Get premium button
-        res.render('spaces/home', {userId: req.params.userId, isPremium: user.isPremium});
+        res.render('spaces/home', {userId: req.params.userId, isPremium: user.isPremium ? user.isPremium : false});
       })
       .catch(error => {
 

@@ -27,7 +27,7 @@
         background-color: black;
         display: inline-block;
         cursor: pointer;
-        width: 10%;
+        /* width: 10%; */
         height: 40%;
         color: white;
         position: relative;
@@ -39,7 +39,6 @@
       .button:hover {
         background-color: white;
         color: black;
-        border: 1px solid yellow;
       }
 
       .modal-navigator {
@@ -61,7 +60,7 @@
         height: 100%;
         width: 40%;
         border-right: 1px solid black;
-        display: table;
+        display: inline-block;
         position: relative;
         z-index: 0;
       }
@@ -81,7 +80,7 @@
         position: absolute;
         z-index: 2;
         text-align: center;
-        /* display: none; */
+        display: none;
       }
 
       .no-spaces p {
@@ -124,44 +123,291 @@
         background-color: yellow;
       }
 
-      .each-space>div {
+      .my-space-entry {
+        height: 10%;
+        width: 100%;
+        background-color: black;
+        font-family: monospace;
+        /* position: absolute; */
+        border-bottom: 1px solid yellow;
+        cursor: pointer;
+        z-index: 3;
+      }
+
+      .my-space-div {
+        width: 80%;
+        height: 80%;
+        /* margin: auto; */
+        top: 35%;
+        left: 3%;
+        position: relative;
+      }
+
+      .my-space-title {
+        margin:0;
+        font-weight: bold;
+        font-size: 120%;
+        color: white;
+      }
+
+      .seperating-entry {
+        height: 5%;
+        width: 100%;
+        background-color: white;
+        font-family: monospace;
+        /* position: absolute; */
+        border-bottom: 1px solid black;
+        z-index: 3;
+      }
+
+      .seperating-div {
+        width: 80%;
+        height: 80%;
+        /* margin: auto; */
+        top: 25%;
+        left: 3%;
+        position: relative;
+      }
+
+      .seperating-title {
+        margin:0;
+        font-weight: bold;
         position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        color: black;
+        text-decoration: underline;
+      }
+
+      .each-space-entry {
+        height: 10%;
+        width: 100%;
+        background-color: black;
+        font-family: monospace;
+        /* position: absolute; */
+        border-bottom: 1px solid yellow;
+        cursor: pointer;
+        z-index: 3;
+      }
+
+      .each-space-div {
+        width: 80%;
+        height: 80%;
+        /* margin: auto; */
+        top: 10%;
+        left: 3%;
+        position: relative;
+      }
+
+      .each-space-title {
+        margin:0;
+        font-weight: bold;
+        position: absolute;
+        color: white;
+        font-size: 120%;
+      }
+
+      .each-space-members {
+        margin:0;
+        margin-top: 5%;
+        position: absolute;
+        color: yellow;
+        font-size: 105%;
+      }
+
+      .highlight-content {
+        width: 60%;
+        height: inherit;
+        background-color: #f5f5e4;
+        display: inline;
+        position: absolute;
+        text-align: center;
+      }
+
+      .total-content {
+        display: inline;
+      }
+
+      .guiding-message {
+        margin: 0;
+        font-family: monospace;
+        margin-top: 35%;
+        text-align: center;
+        display: none;
+        z-index: 4;
+      }
+
+      .highlights-list {
+        width: 100%;
+        height:100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .my-each-highlight {
+        width: 100%;
+        height: 5%
+      }
+
+      .my-each-highlight-div {
+        position: absolute;
+        width: fit-content;
+        margin-right: 2%;
+        margin-top: 1%;
+        background-color: white;
+        height: 20px;
+        right: 0;
+        max-width: 60%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        padding-left: 1%;
+        padding-right: 1%;
+        font-family: monospace;
+        border-radius: 5px;
+      }
+
+      .other-each-highlight {
+        width: 100%;
+        height: 10%; 
+      }
+
+      .other-each-highlight-div {
+        display: block;
+        background-color: white;
+        position: absolute;
+        width: fit-content;
+        margin-left: 2%;
+        margin-top: 1%;
+        padding-left: 1%;
+        padding-right: 1%;
+        /* background-color: white; */
+        left: 0;
+        max-width: 60%;
+        font-family: monospace;
+        border-radius: 5px;
+        /* overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer; */
+      }
+
+      .other-person-name {
+        text-align: left;
+      }
+
+      .other-highlight-content {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .standard-highlight {
+        background-color: yellow;
+      }
+
+      .premium-text {
+        color:black;
+        margin:0;
+        font-family: monospace;
+        margin-left: 180%;
+        /* padding-left: 2%; */
+        /* padding-right: 2%; */
+      }
+
+      .premium-button {
+        background-color: black;
+        display: inline-block;
+        cursor: pointer;
+        width: 25%;
+        height: 40%;
+        color: white;
+        position: relative;
+        border-radius: 5px;
+        font-family: monospace;
+        margin-left: 120%;
+      }
+
+      .premium-button:hover {
+        background-color: white;
+        color: black;
+      }
+
+      .standard-highlight-red {
+        background-color: red;
+        color: white;
+        /* padding: 0; */
       }
     </style>
   </head>
   <body>
     <div class="main-wrapper">
       <div class="modal-navigator">
-        <%if (isPremium) { %>
-               <h3 style="color:black;margin:20px;">Premium</h3>
+        
+          <div class="wrapper-div">
+            <%if (isPremium) { %>
+              <p class="premium-text"><span class="standard-highlight-red">Premium</span></p>
+            <% } else {%>
+              <a  href="/spaces/<%=userId%>/payments"><button type="button" class="premium-button">Get Premium</button></a>
             <% } %>
+          </div>
         <div class="wrapper-div">
-        <%if (!isPremium) { %>
-            <a  href="/spaces/<%=userId%>/payments"><button type="button" class="button">Get Premium</button></a>
-        <% } %>
           <button type="button" class="button"> Logout </button>
         </div>
       </div>
       <div class="main-content">
         <div class="spaces-list">
           <ul class="spaces">
-            <!-- <li class="each-space">
-              <div>
-                Project 1
+            <li class="my-space-entry">
+              <div class="my-space-div">
+                <p class="my-space-title">My space</p>
               </div>
-            </li> -->
+            </li>
+            <li class="seperating-entry">
+              <div class="seperating-div">
+                <p class="seperating-title">Other Collab spaces</p>
+              </div>
+            </li>
+            <li class="each-space-entry">
+              <div class="each-space-div">
+                <p class="each-space-title">WPL Project</p>
+                <p class="each-space-members">Anish,Pragya</p>
+              </div>
+            </li>
+            <div class="no-spaces">
+              <p>No <span>collab spaces</span> yet!</p>
+            </div>
           </ul>
-          <div class="no-spaces">
-            <p>No <span>collab spaces</span> yet!</p>
-          </div>
           <div id = "create_space" class="create-space">
             <i class="create-symbol fas fa-plus fa-lg"></i>
           </div>
         </div>
+        <div class="highlight-content">
+          <p class="guiding-message">Your <span class="standard-highlight">highlights</span> will be shown here!
+          Please select any space from the list</p>
+          <ul class="highlights-list">
+            <li class="my-each-highlight">
+              <div class="my-each-highlight-div">
+                  My Highlight sdjsdksjdkasjkdjakjd anskdjsjajsdkj
+              </div>
+            </li>
+            <li class="my-each-highlight">
+              <div class="my-each-highlight-div">
+                  My Highlight asdsduasydu ahsdysudyusydaydyaiudiausiduaiduiasudiuasduasiudiasudisauiduasiudiasudasuiduasiduasiudaisudiasudiasudiau
+              </div>
+            </li>
+            <li class="other-each-highlight">
+              <div class="other-each-highlight-div">
+                  <div class="other-person-name"><span class="standard-highlight">Pragya</span></div>
+                  <div class="other-highlight-content">My Highlight asdsduasydu ahsdysudyusydaydyaiudiausiduaiduiasudiuasduasiudiasudisauiduasiudiasudasuiduasiduasiudaisudiasudiasudiau</div>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
+      
+      
       <div id="myModal" class="modal">
 
         <div class="modal-content">
@@ -199,7 +445,7 @@
           </div>
           <div class="modal-buttons">
             <button class="modal-create-button">Create</button>
-            <button class="modal-cancel-button">Cancel</button>
+            <button id = "modal_cancel_button" class="modal-cancel-button">Cancel</button>
           </div>
         </div>
       
