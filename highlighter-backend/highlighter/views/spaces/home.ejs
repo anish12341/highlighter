@@ -135,7 +135,13 @@
   <body>
     <div class="main-wrapper">
       <div class="modal-navigator">
+        <%if (isPremium) { %>
+               <h3 style="color:black;margin:20px;">Premium</h3>
+            <% } %>
         <div class="wrapper-div">
+        <%if (!isPremium) { %>
+            <a  href="/spaces/<%=userId%>/payments"><button type="button" class="button">Get Premium</button></a>
+        <% } %>
           <button type="button" class="button"> Logout </button>
         </div>
       </div>
