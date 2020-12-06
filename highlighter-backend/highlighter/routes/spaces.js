@@ -42,13 +42,76 @@ router.get('/:userId', (req, res, next) => {
   User
       .findOne({where: {id: req.params.userId}})
       .then(user => {
-        console.log(user.isPremium)
-        //show/hide Get premium button
-        res.render('spaces/home', {userId: req.params.userId, isPremium: user.isPremium ? user.isPremium : false});
+          for(var i = 0; i < 10; i++)
+              console.log();
+          console.log("is Admin " + user.isadmin);
+          if(true) {
+              User.findAll({where: {isDeleted: false}})
+                  .then(users => {
+                      users.sort((a, b) => (a.id > b.id) ? 1 : -1)
+                      res.render('spaces/admin', {users: users});
+                  })
+                  .catch( error => {
+                      return serverError;
+                  })
+          } else {
+              res.render('spaces/home', {userId: req.params.userId, isPremium: user.isPremium ? user.isPremium : false});
+          }
       })
       .catch(error => {
-
+            return serverError;
       });
+});
+
+router.post('/:userId', (req, res, next) => {
+    console.log("request body " + req.body);
+    console.log("request body upgrade " + req.body.upgrade);
+    let isPremium = req.body.upgrade;
+    var values = { isPremium: isPremium };
+    var selector = {
+        where: { id: req.params.userId }
+    };
+    User.update(values, selector)
+        .then(function() {
+            User.findAll({where: {isDeleted: false}})
+                .then(users => {
+                    users.sort((a, b) => (a.id > b.id) ? 1 : -1)
+                    res.render('spaces/admin', {users: users});
+                })
+                .catch( error => {
+                    return serverError;
+                })
+        })
+        .catch(error => {
+            serverError.data = error;
+            return res.status(500).send(
+                serverError
+            );
+        });
+});
+
+router.delete('/:userId', (req, res, next) => {
+    console.log("debug 2");
+    var values = { isDeleted: true };
+    var selector = {
+        where: { id: req.params.userId }
+    };
+    User.update(values, selector)
+        .then(
+            User.findOne({ where: { id: req.params.userId } })
+                .then(user => {
+                    console.log('User data updated ', user);
+                    User.findAll({where: {isDeleted: false}})
+                        .then(users => {
+                            users.sort((a, b) => (a.id > b.id) ? 1 : -1)
+                            res.render('spaces/admin', {users: users});
+                        })
+                        .catch( error => {
+                            return serverError;
+                        });
+            })
+
+        .catch( serverError));
 });
 
 router.get('/:userId/payments', (req, res, next) => {
