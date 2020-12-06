@@ -24,5 +24,6 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
   collabUser.sync({alter: true}, ()=>{});
+  console.log("Returning: ", collabUser);
   return collabUser;
 };

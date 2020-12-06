@@ -3,7 +3,8 @@ module.exports = (sequelize, DataTypes) => {
   const collab = sequelize.define('collab', {
     space_id: {
         type: DataTypes.BIGINT,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true
     },
     space_name: DataTypes.STRING,
     created_by: DataTypes.BIGINT,

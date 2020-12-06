@@ -2,7 +2,9 @@
   <head>
     <link rel="stylesheet" href="/stylesheets/all.css">
     <link rel="stylesheet" href="/stylesheets/modal.css">
+    <link rel="stylesheet" href="/stylesheets/deletemodal.css">
     <script src="/javascripts/spaces.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
       body {
         margin: 0;
@@ -76,7 +78,7 @@
 
       .no-spaces {
         width: 100%;
-        height: 100%;
+        /* height: 100%; */
         position: absolute;
         z-index: 2;
         text-align: center;
@@ -153,7 +155,7 @@
       .seperating-entry {
         height: 5%;
         width: 100%;
-        background-color: white;
+        background-color: yellow;
         font-family: monospace;
         /* position: absolute; */
         border-bottom: 1px solid black;
@@ -180,16 +182,16 @@
       .each-space-entry {
         height: 10%;
         width: 100%;
-        background-color: black;
+        background-color: #f6f7c3;
         font-family: monospace;
         /* position: absolute; */
-        border-bottom: 1px solid yellow;
+        border-bottom: 1px solid black;
         cursor: pointer;
         z-index: 3;
       }
 
       .each-space-div {
-        width: 80%;
+        width: 95%;
         height: 80%;
         /* margin: auto; */
         top: 10%;
@@ -201,7 +203,7 @@
         margin:0;
         font-weight: bold;
         position: absolute;
-        color: white;
+        color: black;
         font-size: 120%;
       }
 
@@ -209,8 +211,9 @@
         margin:0;
         margin-top: 5%;
         position: absolute;
-        color: yellow;
+        color: black;
         font-size: 105%;
+        font-style: italic;
       }
 
       .highlight-content {
@@ -231,7 +234,7 @@
         font-family: monospace;
         margin-top: 35%;
         text-align: center;
-        display: none;
+        /* display: none; */
         z-index: 4;
       }
 
@@ -241,6 +244,8 @@
         margin: 0;
         padding: 0;
         list-style: none;
+        position: absolute;
+        top: 0;
       }
 
       .my-each-highlight {
@@ -339,6 +344,124 @@
         color: white;
         /* padding: 0; */
       }
+
+      .user-not-found-span {
+        color: white;
+        background-color: black;
+        font-family: monospace;
+        display: none;
+      }
+
+      input {
+        font-family: monospace;
+      }
+
+      .add-member-message {
+        font-family: monospace;
+        /* display: none; */
+      }
+
+      .loader {
+        display: inline-block;
+        width: 10%;
+        height: 12%;
+        position: relative;
+        border: 4px solid #e6e600;
+        top: 25%;
+        left: 45%;
+        animation: loader 2s infinite ease;
+      }
+
+      .loader-inner {
+        vertical-align: top;
+        display: inline-block;
+        width: 100%;
+        background-color: #e6e600;
+        animation: loader-inner 2s infinite ease-in;
+      }
+
+      @keyframes loader {
+        0% {
+          transform: rotate(0deg);
+        }
+        
+        25% {
+          transform: rotate(180deg);
+        }
+        
+        50% {
+          transform: rotate(180deg);
+        }
+        
+        75% {
+          transform: rotate(360deg);
+        }
+        
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes loader-inner {
+        0% {
+          height: 0%;
+        }
+        
+        25% {
+          height: 0%;
+        }
+        
+        50% {
+          height: 100%;
+        }
+        
+        75% {
+          height: 100%;
+        }
+        
+        100% {
+          height: 0%;
+        }
+      }
+
+      #loader_div {
+        width: 100%;
+        height: 20%;
+        position: absolute;
+        z-index: 4;
+        margin-top: 30%;
+        display: none;
+      }
+
+      #loader_div_highlight {
+        width: 100%;
+        height: 65%;
+        position: absolute;
+        top: 0;
+        z-index: 4;
+        margin-top: 30%;
+        display: none;
+      }
+
+      .loader-highlight {
+        display: inline-block;
+        width: 10%;
+        height: 12%;
+        position: relative;
+        border: 4px solid #e6e600;
+        animation: loader 2s infinite ease;
+      }
+
+      .space-delete-sign {
+        position: relative;
+        left: 95%;
+        top: 20%;
+      }
+
+      .delete-space-style {
+        background-color: white;
+        color: black;
+      }
     </style>
   </head>
   <body>
@@ -358,7 +481,7 @@
       </div>
       <div class="main-content">
         <div class="spaces-list">
-          <ul class="spaces">
+          <ul id="spaces" class="spaces">
             <li class="my-space-entry">
               <div class="my-space-div">
                 <p class="my-space-title">My space</p>
@@ -373,10 +496,14 @@
               <div class="each-space-div">
                 <p class="each-space-title">WPL Project</p>
                 <p class="each-space-members">Anish,Pragya</p>
+                <i class="space-delete-sign fa fa-trash-alt" aria-hidden="true"></i>
               </div>
             </li>
             <div class="no-spaces">
               <p>No <span>collab spaces</span> yet!</p>
+            </div>
+            <div id="loader_div">
+              <span class="loader"><span class="loader-inner"></span></span>
             </div>
           </ul>
           <div id = "create_space" class="create-space">
@@ -384,10 +511,10 @@
           </div>
         </div>
         <div class="highlight-content">
-          <p class="guiding-message">Your <span class="standard-highlight">highlights</span> will be shown here!
+          <p id="guiding_message" class="guiding-message">Your <span class="standard-highlight">highlights</span> will be shown here!
           Please select any space from the list</p>
-          <ul class="highlights-list">
-            <li class="my-each-highlight">
+          <ul id="space_highlights_data" class="highlights-list">
+            <!-- <li class="my-each-highlight">
               <div class="my-each-highlight-div">
                   My Highlight sdjsdksjdkasjkdjakjd anskdjsjajsdkj
               </div>
@@ -402,8 +529,11 @@
                   <div class="other-person-name"><span class="standard-highlight">Pragya</span></div>
                   <div class="other-highlight-content">My Highlight asdsduasydu ahsdysudyusydaydyaiudiausiduaiduiasudiuasduasiudiasudisauiduasiudiasudasuiduasiduasiudaisudiasudiasudiau</div>
               </div>
-            </li>
+            </li> -->
           </ul>
+          <div id="loader_div_highlight">
+            <span class="loader-highlight"><span class="loader-inner"></span></span>
+          </div>
         </div>
       </div>
       
@@ -417,19 +547,22 @@
           </div>
           <div class="modal-form">
               <p class="modal-form-name"> Name:</p>
-              <input id="input_space_name" type="text"/>
+              <input id="input_space_name" placeholder="Type name of the space!" type="text"/>
+              <span class="user-not-found-span" id="name_error"></span>
           </div>
           <div class="modal-form" >
               <p class="modal-form-name"> Members:</p>
-              <input id="input_space_members" type="text">
+              <input id="input_space_members" placeholder="Type Email and hit Enter!" type="text">
+              <span class="user-not-found-span" id="user_not_found"></span>
               <div class="member-list">
                 <div class="each-member"><p>pragya</p></div>
                 <div class="each-member"><p>anish</p></div>
               </div>
           </div>
           <div class="modal-form">
-            <div class="added-members">
-              <div class="each-added-member">
+            <div id="added_members" class="added-members">
+              <p id="add_member_message" class="add-member-message">Add Members from above!</p>
+              <!-- <div class="each-added-member">
                 <p class="each-added-member-name">anish</p>
                 <span class="remove-member">&times;</span>
               </div>
@@ -440,15 +573,26 @@
               <div class="each-added-member">
                 <p class="each-added-member-name">sid</p>
                 <span class="remove-member">&times;</span>
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="modal-buttons">
-            <button class="modal-create-button">Create</button>
-            <button id = "modal_cancel_button" class="modal-cancel-button">Cancel</button>
+            <button id="modal_create_button" class="modal-create-button">Create</button>
+            <button id="modal_cancel_button" class="modal-cancel-button">Cancel</button>
           </div>
         </div>
       
+      </div>
+      <div id="delete_modal" class="delete-modal">
+
+        <div class="delete-modal-content">
+          <div class="delete-modal-header">
+            <span id="delete_space_cancel" class="close">&times;</span>
+            <h2 id="delete_space_message">Are you sure you want to delete</h2>
+          </div>
+          <button id="yes_delete_space">Yes</button>
+          <button id="no_delete_space">No</button>
+        </div>
       </div>
     </div>
   </body>

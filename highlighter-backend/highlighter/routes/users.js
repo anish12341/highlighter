@@ -322,4 +322,46 @@ router.post('/reset-password', (req, res, next) => {
   return res.render('users/reset-done', { successMessage: 'Password changed successfully!' });
 });
 
+router.get('/validate-email', (req, res, next) => {
+  const schema = Joi.object().keys({
+    email: Joi.string().email({ minDomainAtoms: 2 }).required().label('email')
+  });
+  
+  const joiResult = Joi.validate(req.query, schema);
+  if (joiResult.error) {
+    return res.status(400).send(
+      badRequest
+    );
+  }
+  const {email} = req.query;
+  User.findOne({
+    where: {
+      email,
+    }
+  })
+  .then(user => {
+    if (user && user.dataValues) {
+      return res.status(200).send(
+        {
+          isFound: true,
+          userData: user.dataValues,
+          message: 'User found'
+        }
+      );
+    }
+    return res.status(200).send(
+      {
+        isFound: false,
+        message: 'User not found'
+      }
+    );
+  })
+  .catch(error => {
+    serverError.data = error;
+    return res.status(500).send(
+      serverError
+    );
+  });
+});
+
 module.exports = router;

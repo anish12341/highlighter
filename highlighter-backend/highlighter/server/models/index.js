@@ -36,6 +36,7 @@ fs
     (file.slice(-3) === '.js'))
   .forEach(file => {
     const model = sequelize.import(path.join(__dirname, file));
+    console.log("Model name: ", model.name);
     db[model.name] = model;
   });
 

@@ -4,11 +4,16 @@ var router = express.Router();
 const Joi = require('joi');
 const async = require('async');
 const env = process.env;
-const auth = require('./auth.js')
+const auth = require('./auth.js');
+const { QueryTypes } = require('sequelize');
+const { sequelize } = require('../server/models/index.js');
 
 //Imported models
 const Payments = require('../server/models').payments;
 const User = require('../server/models').user;
+const Spaces = require('../server/models').collab;
+const spaceUsers = require('../server/models').collab_user;
+const SpacesHighlights = require('../server/models').collab_space_highlights;
 
 //Default error objects
 let badRequest =  {
@@ -54,7 +59,7 @@ router.post('/:userId/payments',(req, res, next) => {
   var date = new Date();
   let paymentJson = {};
   paymentJson.user_id = req.params.userId;
-  paymentJson.payment_type = "Credit Card";
+  paymentJson.payment_type = 'Credit Card';
   paymentJson.amount = 10;
   paymentJson.payment_time = date;
   Payments
@@ -82,6 +87,200 @@ router.post('/:userId/payments',(req, res, next) => {
             serverError
         );
       });
+});
+
+router.post('/create', (req, res, next) => {
+  console.log("req body", req.body)
+  const schema = Joi.object().keys({
+    name: Joi.string().required().label('Space Name'),
+    members: Joi.array().required().label('Members array'),
+    created_by: Joi.number().required().label('Created by')
+  });
+
+  const joiResult = Joi.validate(req.body, schema);
+  if (joiResult.error) {
+    console.log(joiResult.error);
+    return res.status(400).send(
+      badRequest
+    );
+  }
+
+  const { created_by, name: space_name } = req.body;
+  let { members } = req.body;
+  members.push(created_by);
+  // console.log(typeof(JSON.parse(members)))
+  console.log(spaceUsers);
+  async.waterfall([
+    (next) => {
+      Spaces
+        .create({
+          created_by,
+          space_name
+        })
+        .then(collab => {
+          // delete user.dataValues.password;
+          console.log(collab);
+          return next(null, collab.dataValues);
+        })
+        .catch(error => {
+          console.log(error);
+          return next(error, null);
+        });
+    },
+    (collabData, next) => {
+      members.map(eachMember => {
+        let isAdmin = false;
+
+        if (eachMember === collabData.created_by) {
+          isAdmin = true;
+        }
+
+        spaceUsers
+          .create({
+            space_id: collabData.space_id,
+            user_id: eachMember,
+            isAdmin
+          })
+          .then((eachSpaceUser) => {
+            console.log("Inserted: ", eachSpaceUser.dataValues)
+          })
+          .catch(error => {
+            return next(error, null);
+          })
+      });
+      return next(null, collabData);
+    }
+  ], (error, result) => {
+    if (error) {
+      serverError.data = error;
+        return res.status(500).send(
+          serverError
+      );
+    }
+    return res.status(200).send(
+      {
+        success: true,
+        space: result
+      }
+    )
+  })  
+});
+
+router.get('/all/api', (req, res, next) => {
+  const schema = Joi.object().keys({
+    userid: Joi.number().required().label('User ID'),
+  });
+
+  const joiResult = Joi.validate(req.query, schema);
+  if (joiResult.error) {
+    console.log(joiResult.error);
+    return res.status(400).send(
+      badRequest
+    );
+  }
+
+  sequelize.query(`SELECT res.space_name, res.created_by, res.space_id,res."isAdmin",
+  ARRAY_AGG(
+    json_build_object('userid', cu.user_id, 'name', u."name")) AS members
+    FROM (SELECT c.space_name, c.created_by, c.space_id, b."isAdmin"
+  FROM public."collabs" AS c INNER JOIN public."collab_users" AS b 
+    ON c.space_id = b.space_id
+    WHERE b.user_id = ${req.query.userid}
+    ORDER BY c."createdAt") AS res
+    INNER JOIN public."collab_users" AS cu
+    INNER JOIN public."users" AS u
+    ON u."id" = cu."user_id"
+    ON res.space_id = cu.space_id
+    GROUP BY res.space_name, res.created_by, res.space_id, res."isAdmin"`,
+  {
+    type: QueryTypes.SELECT
+  })
+  .then(Spaces => {
+    return res.status(200).send({
+      status: true,
+      message: 'Spaces retrieved successfully!',
+      data: Spaces
+    })
+  })
+  .catch(error => {
+    serverError.data = error;
+    return res.status(500).send(
+      serverError
+    )
+  })
+});
+
+router.delete('/:space_id', (req, res, next) => {
+  const schema = Joi.object().keys({
+    user_id: Joi.number().required().label('User ID')
+  });
+
+  const joiResult = Joi.validate(req.body, schema);
+  if (joiResult.error) {
+    console.log(joiResult.error);
+    return res.status(400).send(
+      badRequest
+    );
+  }
+
+  const { space_id } = req.params;
+  Spaces
+  .destroy({
+    where: {
+      space_id
+    }
+  })
+  .then(response => {
+    return res.status(200).send({
+      status: true,
+      message: 'Space deleted successfully!'
+    })
+  })
+  .catch(error => {
+    console.log(error)
+    serverError.data = error;
+    return res.status(500).send(
+      serverError
+    )
+  })
+});
+
+router.get('/:space_id/highlights', (req, res, next) => {
+  const schema = Joi.object().keys({
+    space_id: Joi.number().required().label('Space ID')
+  });
+
+  const joiResult = Joi.validate(req.params, schema);
+  if (joiResult.error) {
+    console.log(joiResult.error);
+    return res.status(400).send(
+      badRequest
+    );
+  }
+
+  const { space_id } = req.params;
+  sequelize.query(`SELECT h.*, u.name  FROM highlights AS h INNER JOIN collab_space_highlights AS csh
+  ON h.id = csh.highlight_id
+  INNER JOIN users AS u
+  ON u.id = h.userid
+  WHERE csh.space_id = ${space_id}
+  ORDER BY h."createdAt" DESC`, {
+    type: QueryTypes.SELECT
+  })
+  .then(response => {
+    return res.status(200).send({
+      status: true,
+      message: 'Space highlights retrieved successfully!',
+      data: response
+    })
+  })
+  .catch(error => {
+    console.log(error)
+    serverError.data = error;
+    return res.status(500).send(
+      serverError
+    )
+  })
 });
 
 module.exports = router;

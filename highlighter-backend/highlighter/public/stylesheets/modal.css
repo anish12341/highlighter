@@ -142,6 +142,8 @@
     display: inline-block;
     overflow-y: auto;
     margin-bottom: 3%;
+    text-align: center;
+    word-break: break-all;
   }
 
   .each-added-member {

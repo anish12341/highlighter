@@ -132,7 +132,7 @@ chrome.runtime.onStartup.addListener(() => {});
  * This message comes from backend done.ejs
  */
 chrome.runtime.onMessageExternal.addListener(
-  (request, sender, sendResponse) => {
+  async (request, sender, sendResponse) => {
     console.log("From browser::", request);
     console.log("Sender is: ", sender.tab.id);
     if (request.message === 'userData') {
@@ -158,5 +158,9 @@ chrome.runtime.onMessageExternal.addListener(
           });
         }, 5000);
       });
+    } else if (request.message === 'getUser') {
+      console.log("Getting user for content");
+      let isUserLoggedIn = await beforeHighlight.userLoggedIn();
+      return isUserLoggedIn;
     }
   });
