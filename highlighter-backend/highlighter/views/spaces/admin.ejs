@@ -152,6 +152,7 @@ span.price {
                         <th scope="col">IsPremium</th>
                         <th scope="col">Created On</th>
                         <th scope="col">Spaces Created</th>
+                        <th scope="col">User Spaces</th>
                         <th scope="col">Upgrade-Downgrade</th>
                         <th scope="col">Delete User</th>
                      </tr>
@@ -165,6 +166,16 @@ span.price {
                         <td><%= users[i].isPremium %></td>
                         <td><%= users[i].createdAt %></td>
                         <td><%= users[i].spaces_created %></td>
+                        <td>
+                            <% for(var j = 0; j < users[i].spaces.length; j++) {
+                                if(j == users[i].spaces.length-1) {%>
+                                    <%= users[i].spaces[j] %>
+                                <% } else { %>
+                                    <%= users[i].spaces[j]+',' %>
+                            <%    }
+
+                             }%>
+                        </td>
                         <td>
                            <% if(users[i].isPremium) { %>
                            <form action="/spaces/<%=users[i].id%>" method="POST">
@@ -202,6 +213,6 @@ span.price {
    <div class="container-fluid text-center">
    </div>
    <footer class="container-fluid text-center">
-      <p>Footer Text</p>
+      <p>© 2020 Spaces, Inc.</p>
    </footer>
 </body>

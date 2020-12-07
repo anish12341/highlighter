@@ -42,18 +42,12 @@ router.get('/:userId', (req, res, next) => {
   User
       .findOne({where: {id: req.params.userId}})
       .then(user => {
-          for(var i = 0; i < 10; i++)
-              console.log();
-          console.log("is Admin " + user.isadmin);
-          if(true) {
-              User.findAll({where: {isDeleted: false}})
-                  .then(users => {
-                      users.sort((a, b) => (a.id > b.id) ? 1 : -1)
-                      res.render('spaces/admin', {users: users});
-                  })
-                  .catch( error => {
-                      return serverError;
-                  })
+          // for(var i = 0; i < 5; i++)
+          //     console.log();
+          // console.log("is Admin " + user.isadmin);
+          if(user.isadmin) {
+              displayAllUserInfo(res);
+
           } else {
               res.render('spaces/home', {userId: req.params.userId, isPremium: user.isPremium ? user.isPremium : false});
           }
@@ -62,7 +56,35 @@ router.get('/:userId', (req, res, next) => {
             return serverError;
       });
 });
+function displayAllUserInfo(res) {
+    User.findAll({where: {isDeleted: false}, raw: true})
+        .then(users => {
+            users.sort((a, b) => (a.id > b.id) ? 1 : -1)
+            const promise = sequelize.query(`select space_name, user_id from public.collab_users cusr join public.collabs col on cusr.space_id = col.space_id`,
+                {
+                    type: QueryTypes.SELECT, raw:true
+                })
+            promise.then(data => {
+                // console.log(data);
+                users.forEach(user => {
+                    user.spaces = [];
+                    data.forEach(space => {
+                        if(space.user_id == user.id) {
+                            user.spaces.push(space.space_name);
+                        }
+                    })
+                    // console.log("User " + user.id + " " + user.dataValues);
+                })
+                // console.log(users);
+                res.render('spaces/admin', {users: users})
+            });
 
+
+        })
+        .catch( error => {
+            return serverError;
+        })
+}
 router.post('/:userId', (req, res, next) => {
     console.log("request body " + req.body);
     console.log("request body upgrade " + req.body.upgrade);
@@ -73,14 +95,7 @@ router.post('/:userId', (req, res, next) => {
     };
     User.update(values, selector)
         .then(function() {
-            User.findAll({where: {isDeleted: false}})
-                .then(users => {
-                    users.sort((a, b) => (a.id > b.id) ? 1 : -1)
-                    res.render('spaces/admin', {users: users});
-                })
-                .catch( error => {
-                    return serverError;
-                })
+            displayAllUserInfo(res);
         })
         .catch(error => {
             serverError.data = error;
@@ -101,14 +116,7 @@ router.delete('/:userId', (req, res, next) => {
             User.findOne({ where: { id: req.params.userId } })
                 .then(user => {
                     console.log('User data updated ', user);
-                    User.findAll({where: {isDeleted: false}})
-                        .then(users => {
-                            users.sort((a, b) => (a.id > b.id) ? 1 : -1)
-                            res.render('spaces/admin', {users: users});
-                        })
-                        .catch( error => {
-                            return serverError;
-                        });
+                    displayAllUserInfo(res);
             })
 
         .catch( serverError));
@@ -246,7 +254,7 @@ router.get('/all/api', (req, res, next) => {
   ARRAY_AGG(
     json_build_object('userid', cu.user_id, 'name', u."name")) AS members
     FROM (SELECT c.space_name, c.created_by, c.space_id, b."isAdmin"
-  FROM public."collabs" AS c INNER JOIN public."collab_users" AS b 
+    FROM public."collabs" AS c INNER JOIN public."collab_users" AS b 
     ON c.space_id = b.space_id
     WHERE b.user_id = ${req.query.userid}
     ORDER BY c."createdAt") AS res

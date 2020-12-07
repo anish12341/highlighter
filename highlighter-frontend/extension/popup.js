@@ -242,11 +242,11 @@ const scrolled = async () => {
     //     await chrome.extension.getBackgroundPage().console.log('I am at the ends');
     //     alert("End");
     // }
-
+    
 }
 
 /**
- * General method to handle error
+ * General method to handle error 
  */
 const handleError = () => {
   return new Promise (
@@ -278,7 +278,7 @@ const populateHighlights = (userInfo,mainUL) => {
           var page = data.page;
           if (page == undefined) {
             page = 1;
-            await chrome.storage.sync.set( {page: 1} , () => {});
+            await chrome.storage.sync.set( {page: 1} , () => {});          
           }
           console.log('My page:: ', page);
 
@@ -288,11 +288,11 @@ const populateHighlights = (userInfo,mainUL) => {
               console.log('My state:: ', state);
               let highlights = await afterHighlight_popup.useAPI('fetchHighlights'
                           ,'GET', `${host}/highlights?`, {
-                            userid: userInfo.userData.id,
+                            userid: userInfo.userData.id, 
                             type: 'popup',
-                            page,
+                            page, 
                             to_include
-                          }, userInfo.userData.accesstoken);
+                          }, userInfo.userData.accesstoken); 
               if (highlights.data.length == 0 && page == 1) {
                 loaderDiv.style.display = 'none';
                 document.getElementById('no_highlight_div').style.display = 'flex';
@@ -311,7 +311,7 @@ const populateHighlights = (userInfo,mainUL) => {
 
                   let li1 = document.createElement('li');
                   li1.innerHTML = eachHighlight.selected_html;
-
+                  
                   let anchor = document.createElement('a');
                   anchor.href = eachHighlight.url;
                   anchor.innerHTML = eachHighlight.url_title;
@@ -328,7 +328,7 @@ const populateHighlights = (userInfo,mainUL) => {
 
                   mainAnchor.appendChild(UL);
                   mainUL.appendChild(mainAnchor);
-
+                 
                   let iElement = document.createElement('i');
                   iElement.classList.add('delete_sign');
                   iElement.classList.add('fas');
@@ -391,11 +391,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     let beforeLogin = document.getElementById('before_login');
-    let afterLogin = document.getElementById('after_login');
+    let afterLogin = document.getElementById('after_login');  
 
     // A method to check whether user is logged in or not
     let isUserLoggedIn = await beforeHighlight_background.userLoggedIn();
-
+    
     if (isUserLoggedIn.isLoggedIn) {
       try {
         beforeHighlight_popup.setCurrentTab();
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Make "afterLogin" part visible from popup.html if user is already logged in
         afterLogin.style.display = 'block';
 
-
+        
         // scrollingUL.onscroll = scrolled(scrollingUL);
         const logoutButton = document.getElementById('logout_button');
         const spacesButton = document.getElementById('spaces_button');
@@ -501,5 +501,4 @@ const modalOperation = (mainAnchor, iElement, highlighterid,userInfo) => {
 };
 
 module.exports = {handleError};
-
 },{"../background/beforeHighlight/highlight.js":1,"./afterHighlight_popup/highlight.js":2,"./beforeHighlight_popup/highlight.js":3}]},{},[4]);
