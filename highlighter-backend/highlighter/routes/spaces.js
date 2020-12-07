@@ -13,7 +13,7 @@ const Payments = require('../server/models').payments;
 const User = require('../server/models').user;
 const Spaces = require('../server/models').collab;
 const spaceUsers = require('../server/models').collab_user;
-const SpacesHighlights = require('../server/models').collab_space_highlights;
+const Notifications = require('../server/models').notification;
 
 //Default error objects
 let badRequest =  {
@@ -45,7 +45,7 @@ router.get('/:userId', (req, res, next) => {
           for(var i = 0; i < 10; i++)
               console.log();
           console.log("is Admin " + user.isadmin);
-          if(true) {
+          if(user.isadmin) {
               User.findAll({where: {isDeleted: false}})
                   .then(users => {
                       users.sort((a, b) => (a.id > b.id) ? 1 : -1)
@@ -152,12 +152,14 @@ router.post('/:userId/payments',(req, res, next) => {
       });
 });
 
-router.post('/create', (req, res, next) => {
+router.post('/create/new', (req, res, next) => {
   console.log("req body", req.body)
   const schema = Joi.object().keys({
     name: Joi.string().required().label('Space Name'),
     members: Joi.array().required().label('Members array'),
-    created_by: Joi.number().required().label('Created by')
+    member_names: Joi.array().required().label('Members name array'),
+    created_by: Joi.number().required().label('Created by'),
+    created_by_name: Joi.string().required().label('Created by name'),
   });
 
   const joiResult = Joi.validate(req.body, schema);
@@ -168,9 +170,9 @@ router.post('/create', (req, res, next) => {
     );
   }
 
-  const { created_by, name: space_name } = req.body;
-  let { members } = req.body;
-  members.push(created_by);
+  const { created_by, name: space_name, created_by_name } = req.body;
+  let { members, member_names } = req.body;
+  // members.push(created_by);
   // console.log(typeof(JSON.parse(members)))
   console.log(spaceUsers);
   async.waterfall([
@@ -191,7 +193,7 @@ router.post('/create', (req, res, next) => {
         });
     },
     (collabData, next) => {
-      members.map(eachMember => {
+      members.map((eachMember, index) => {
         let isAdmin = false;
 
         if (eachMember === collabData.created_by) {
@@ -209,11 +211,29 @@ router.post('/create', (req, res, next) => {
           })
           .catch(error => {
             return next(error, null);
-          })
+          });
+
+          console.log(eachMember, collabData.created_by);
+          if (eachMember != collabData.created_by) {
+            Notifications
+            .create({
+              user_id: eachMember,
+              message: `${created_by_name} added you into ${space_name}`,
+              isread: false
+            })
+            .then((eachNotification) => {
+              console.log("Inserted: ", eachNotification.dataValues)
+            })
+            .catch(error => {
+              return next(error, null);
+            });
+          }
+          
       });
       return next(null, collabData);
     }
   ], (error, result) => {
+    console.log(error, result);
     if (error) {
       serverError.data = error;
         return res.status(500).send(
@@ -273,7 +293,7 @@ router.get('/all/api', (req, res, next) => {
   })
 });
 
-router.delete('/:space_id', (req, res, next) => {
+router.delete('/delete/:space_id', (req, res, next) => {
   const schema = Joi.object().keys({
     user_id: Joi.number().required().label('User ID')
   });

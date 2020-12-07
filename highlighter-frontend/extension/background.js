@@ -97,7 +97,8 @@ const asyncMessageListener = async (request, sender) => {
         xpath: request.xpath,
         highlight_color: request.highlightColor,
         url: sender.url,
-        url_title: sender.tab.title
+        url_title: sender.tab.title,
+        current_space: request.currentSpace
       }
       if(userLoggedIn.isLoggedIn) {
         dataToSend.userid = userLoggedIn.userData.id;
@@ -203,6 +204,20 @@ chrome.runtime.onMessageExternal.addListener(
       console.log("Getting user for content");
       let isUserLoggedIn = await beforeHighlight.userLoggedIn();
       return sendResponse(isUserLoggedIn);
+    } else if (request.message === 'logoutUser') {
+      console.log("Trying to logout!");
+      chrome.storage.sync.clear();
+      try {
+        return sendResponse({
+          logoutSuccessful: true,
+          data: {}
+        });
+      } catch(error) {
+        return sendResponse({
+          logoutSuccessful: false,
+          data: error
+        });
+      }
     }
   });
 },{"../popup/afterHighlight_popup/highlight.js":4,"../popup/beforeHighlight_popup/highlight.js":5,"./afterHighlight/highlight.js":1,"./beforeHighlight/highlight.js":2}],4:[function(require,module,exports){
@@ -249,12 +264,13 @@ const useAPI = (objective = '', method = '', url = '', data = {}, accesstoken = 
   return new Promise (
     async (resolve, reject) => {
       let paylod = {};
-      if (objective == 'fetchHighlights') {
+      if (objective == 'fetchHighlights' || objective == 'fetchSpaces') {
         if (method == 'GET') {
           let query = Object.keys(data)
              .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
              .join('&');
           url = url + query;
+          console.log("Query: ", query);
           paylod = {
             method,
             headers: {
@@ -393,15 +409,41 @@ const setCurrentTab = () => {
 /**
  * Method to take users to collaboration space page
  */
-const openSpaces = ({ usertoken = "" }) => {
+const openSpaces = ({ usertoken = "", userid }) => {
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
-    chrome.tabs.create({url: `${host}/spaces?usertoken=${usertoken}`, active: true}, (tabs) => {
+    chrome.tabs.create({url: `${host}/spaces/${userid}?usertoken=${usertoken}`, active: true}, (tabs) => {
       // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
   });
 }
 
+const populateSpaces = ({ data: spaces }, globalCurrentSpace) => { 
+  console.log("Global Current Space: ", globalCurrentSpace);
+  const spacesSelection = $("#spaces_selection");
+  if (globalCurrentSpace === -1) {
+    spacesSelection.append(`<option value="-1" selected>My Space</option>`);
+  } else {
+    spacesSelection.append(`<option value="-1">My Space</option>`);
+  }
+  spaces.map(eachSpace => {
+    const optionElement = document.createElement("option");
+    optionElement.value = eachSpace.space_id;
+    optionElement.selected = eachSpace.space_id === globalCurrentSpace ? true : false;
+    optionElement.innerHTML = eachSpace.space_name;
+    spacesSelection.append(optionElement);
+  });
+}
 
-module.exports = {openLogin, openSignup, logout, hideShowLogin, registerLoginSignup, setCurrentTab, openSpaces};
+
+module.exports = {
+  openLogin,
+  openSignup,
+  logout,
+  hideShowLogin,
+  registerLoginSignup,
+  setCurrentTab,
+  openSpaces,
+  populateSpaces
+};
 },{}]},{},[3]);

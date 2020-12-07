@@ -89,14 +89,40 @@ const setCurrentTab = () => {
 /**
  * Method to take users to collaboration space page
  */
-const openSpaces = ({ usertoken = "" }) => {
+const openSpaces = ({ usertoken = "", userid }) => {
   chrome.tabs.query({active: true, currentWindow: true}, (tabsMain) => {
-    chrome.tabs.create({url: `${host}/spaces?usertoken=${usertoken}`, active: true}, (tabs) => {
+    chrome.tabs.create({url: `${host}/spaces/${userid}?usertoken=${usertoken}`, active: true}, (tabs) => {
       // chrome.extension.getBackgroundPage().console.log('New tab created!!', tabsMain[0].id);
     })
     // chrome.tabs.update(tabsMain[0].id, { highlighted: true }, () => {});
   });
 }
 
+const populateSpaces = ({ data: spaces }, globalCurrentSpace) => { 
+  console.log("Global Current Space: ", globalCurrentSpace);
+  const spacesSelection = $("#spaces_selection");
+  if (globalCurrentSpace === -1) {
+    spacesSelection.append(`<option value="-1" selected>My Space</option>`);
+  } else {
+    spacesSelection.append(`<option value="-1">My Space</option>`);
+  }
+  spaces.map(eachSpace => {
+    const optionElement = document.createElement("option");
+    optionElement.value = eachSpace.space_id;
+    optionElement.selected = eachSpace.space_id === globalCurrentSpace ? true : false;
+    optionElement.innerHTML = eachSpace.space_name;
+    spacesSelection.append(optionElement);
+  });
+}
 
-module.exports = {openLogin, openSignup, logout, hideShowLogin, registerLoginSignup, setCurrentTab, openSpaces};
+
+module.exports = {
+  openLogin,
+  openSignup,
+  logout,
+  hideShowLogin,
+  registerLoginSignup,
+  setCurrentTab,
+  openSpaces,
+  populateSpaces
+};
