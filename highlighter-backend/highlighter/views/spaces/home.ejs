@@ -74,6 +74,7 @@
         padding: 0;
         position: absolute;
         z-index: 1;
+        overflow-y: auto;
       }
 
       .no-spaces {
@@ -82,7 +83,7 @@
         position: absolute;
         z-index: 2;
         text-align: center;
-        display: none;
+        /* display: none; */
       }
 
       .no-spaces p {
@@ -274,7 +275,7 @@
 
       .other-each-highlight {
         width: 100%;
-        height: 10%; 
+        height: 7%; 
       }
 
       .other-each-highlight-div {
@@ -462,12 +463,77 @@
         background-color: white;
         color: black;
       }
+
+      .notification-sign {
+        background-color: black;
+        width: 2%;
+        text-align: center;
+        top: 3.4%;
+        left: 70%;
+        position: absolute;
+        border-radius: 5px;
+        cursor: pointer;
+        display: inline;
+      }
+
+      .notification-sign:hover {
+        background-color: grey;
+      }
+
+      .notification-content {
+        width: 30%;
+        height: 40%;
+        position: absolute;
+        left: 65%;
+        top: 7%;
+        background-color: black;
+        z-index: 10;
+        border-radius: 5px;
+        background-color: #f6f7c3;
+        border: 1px solid black;
+        overflow-y: auto;
+        display: none;
+      }
+
+      .notification-content-ul {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+      }
+
+      .notification-content-li {
+        width: 100%;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+        border-bottom: 1px solid black;
+        font-family: monospace;
+        padding-top:2%;
+        padding-bottom: 2%;
+        /* margin-left:2%; */
+      }
+
+      .unread-notification {
+        background-color: #f7e68f;
+      }
+
     </style>
   </head>
   <body>
     <div class="main-wrapper">
+      <div id="notification_content_tray" class="notification-content">
+        <ul id="notification_content_ul" class="notification-content-ul">
+            <!-- <li class="notification-content-li unread-classification"><span class="standard-highlight">Anish</span> added sdsdsyou in
+              <span class="standard-highlight">ML Project</span></li> -->
+        </ul>
+      </div>
       <div class="modal-navigator">
-        
+            <div id="natification_button" class="notification-sign">
+            <i class="fa fa-envelope" aria-hidden="true"></i>
+          </div>
           <div class="wrapper-div">
             <%if (isPremium) { %>
               <p class="premium-text"><span class="standard-highlight-red">Premium</span></p>
@@ -476,13 +542,13 @@
             <% } %>
           </div>
         <div class="wrapper-div">
-          <button type="button" class="button"> Logout </button>
+          <button id="spaces_logout_button" type="button" class="button"> Logout </button>
         </div>
       </div>
       <div class="main-content">
         <div class="spaces-list">
           <ul id="spaces" class="spaces">
-            <li class="my-space-entry">
+            <li id="my_space_entry" class="my-space-entry">
               <div class="my-space-div">
                 <p class="my-space-title">My space</p>
               </div>
@@ -492,14 +558,14 @@
                 <p class="seperating-title">Other Collab spaces</p>
               </div>
             </li>
-            <li class="each-space-entry">
+            <!-- <li class="each-space-entry">
               <div class="each-space-div">
                 <p class="each-space-title">WPL Project</p>
                 <p class="each-space-members">Anish,Pragya</p>
                 <i class="space-delete-sign fa fa-trash-alt" aria-hidden="true"></i>
               </div>
-            </li>
-            <div class="no-spaces">
+            </li> -->
+            <div id="no_spaces" class="no-spaces">
               <p>No <span>collab spaces</span> yet!</p>
             </div>
             <div id="loader_div">
@@ -516,18 +582,24 @@
           <ul id="space_highlights_data" class="highlights-list">
             <!-- <li class="my-each-highlight">
               <div class="my-each-highlight-div">
-                  My Highlight sdjsdksjdkasjkdjakjd anskdjsjajsdkj
+                  <a>This highlight is done by me for this collab space</a>
               </div>
             </li>
             <li class="my-each-highlight">
               <div class="my-each-highlight-div">
-                  My Highlight asdsduasydu ahsdysudyusydaydyaiudiausiduaiduiasudiuasduasiudiasudisauiduasiudiasudasuiduasiduasiudaisudiasudiasudiau
+                  This is another highlight by me
               </div>
             </li>
             <li class="other-each-highlight">
               <div class="other-each-highlight-div">
                   <div class="other-person-name"><span class="standard-highlight">Pragya</span></div>
-                  <div class="other-highlight-content">My Highlight asdsduasydu ahsdysudyusydaydyaiudiausiduaiduiasudiuasduasiudiasudisauiduasiudiasudasuiduasiduasiudaisudiasudiasudiau</div>
+                  <div class="other-highlight-content">Highlight done by Pragya!!</div>
+              </div>
+            </li>
+            <li class="other-each-highlight">
+              <div class="other-each-highlight-div">
+                  <div class="other-person-name"><span class="standard-highlight">Sid</span></div>
+                  <div class="other-highlight-content">Highlight is contributed by Sid!!</div>
               </div>
             </li> -->
           </ul>

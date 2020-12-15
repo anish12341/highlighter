@@ -41,12 +41,13 @@ const useAPI = (objective = '', method = '', url = '', data = {}, accesstoken = 
   return new Promise (
     async (resolve, reject) => {
       let paylod = {};
-      if (objective == 'fetchHighlights') {
+      if (objective == 'fetchHighlights' || objective == 'fetchSpaces') {
         if (method == 'GET') {
           let query = Object.keys(data)
              .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
              .join('&');
           url = url + query;
+          console.log("Query: ", query);
           paylod = {
             method,
             headers: {

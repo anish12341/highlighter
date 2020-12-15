@@ -56,7 +56,8 @@ const asyncMessageListener = async (request, sender) => {
         xpath: request.xpath,
         highlight_color: request.highlightColor,
         url: sender.url,
-        url_title: sender.tab.title
+        url_title: sender.tab.title,
+        current_space: request.currentSpace
       }
       if(userLoggedIn.isLoggedIn) {
         dataToSend.userid = userLoggedIn.userData.id;
@@ -161,6 +162,20 @@ chrome.runtime.onMessageExternal.addListener(
     } else if (request.message === 'getUser') {
       console.log("Getting user for content");
       let isUserLoggedIn = await beforeHighlight.userLoggedIn();
-      return isUserLoggedIn;
+      return sendResponse(isUserLoggedIn);
+    } else if (request.message === 'logoutUser') {
+      console.log("Trying to logout!");
+      chrome.storage.sync.clear();
+      try {
+        return sendResponse({
+          logoutSuccessful: true,
+          data: {}
+        });
+      } catch(error) {
+        return sendResponse({
+          logoutSuccessful: false,
+          data: error
+        });
+      }
     }
   });

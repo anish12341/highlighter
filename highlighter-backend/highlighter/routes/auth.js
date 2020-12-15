@@ -7,12 +7,14 @@ var unauthorizedRes = {
 };
 
 const authenticateJWT = (req, res, next) => {
+  console.log(req.headers.authorization);
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
     const token = authHeader.split(' ')[1];
 
     jwt.verify(token, env.accesstokensecret, (err, user) => {
+      console.log(err);
       if (err) {
         return res.status(403).send(unauthorizedRes);
       }

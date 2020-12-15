@@ -9,6 +9,8 @@ var userDetails, scrollingUL, loaderDiv;
 var anchorHighlight;
 var host = 'http://127.0.0.1:3000';
 var to_include = 0;
+let globalCurrentSpace = -1;
+let isScrolled = false;
 
 /**
  * Method to map scrolling with pagination on get highlights API
@@ -49,10 +51,10 @@ const handleError = () => {
  * This mehtod is used to populate extension popup with user's highlights
  */
 
-const populateHighlights = (userInfo,mainUL) => {
+const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace) => {
   return new Promise (
     async (resolve, reject) => {
-      chrome.storage.sync.get('page', async (data) => {
+      chrome.storage.sync.get(['page'], async (data) => {
         // await chrome.extension.getBackgroundPage().console.log('Populating: ', to_include);
         try {
           var page = data.page;
@@ -71,7 +73,8 @@ const populateHighlights = (userInfo,mainUL) => {
                             userid: userInfo.userData.id, 
                             type: 'popup',
                             page, 
-                            to_include
+                            to_include,
+                            current_space: currentSpace
                           }, userInfo.userData.accesstoken); 
               if (highlights.data.length == 0 && page == 1) {
                 loaderDiv.style.display = 'none';
@@ -119,14 +122,30 @@ const populateHighlights = (userInfo,mainUL) => {
                 mainUL.style.display = 'inline-block';
                 loaderDiv.style.display = 'none';
               }
+
+              // fetch(`${location.origin}/spaces/all/api?userid=${userid}`,
+              //     {
+              //       method: "GET"
+              //     })
+              //     .then(response => response.json())
+              //     .then(spaces => {
+              //       console.log(spaces);
+              //       const spacesUL = $("#spaces");
+              //       spaceLoader.hide();
+              //       spaces.data.map(eachSpace => {
+              //         spacesUL.append(createSpaceMarkup(eachSpace));
+              //       })
+              //     })
               return resolve();
             } catch(error) {
+              console.log("Error::: ", error);
               await handleError();
               return reject(error);
             }
           });
         }
         catch(error) {
+          console.log("Error::: ", error);
           await handleError();
         }
       });
@@ -134,7 +153,45 @@ const populateHighlights = (userInfo,mainUL) => {
   )
 }
 
+const populateSpacesMain = (userInfo) => {
+  return new Promise(
+    async (resolve, reject) => {
+      try {
+        let spaces = await afterHighlight_popup.useAPI('fetchSpaces'
+        ,'GET', `${host}/spaces/all/api?`, {
+          userid: userInfo.userData.id,
+        }, userInfo.userData.accesstoken);
+        beforeHighlight_popup.populateSpaces(spaces, globalCurrentSpace);
+        return resolve();
+      } catch(error) {
+        console.log("Error: ", error);
+        await handleError();
+        return reject(error);
+      }
+    }
+  );
+}
 
+const registerSelectOptionChange = ({ userDetails, scrollingUL }) => {
+  console.log(userDetails);
+  const spacesSelection = $("#spaces_selection");
+  spacesSelection.change(async function() {
+    globalCurrentSpace = $(this).val();
+    console.log("I am updated!!");
+    await chrome.storage.sync.set({ currentSpace: $(this).val() });
+    const highlighList = $("#highlight_list");
+    const loaderDiv = $("#loader_div");
+    highlighList.empty();
+    loaderDiv.show();
+    console.log("");
+    await setOpenPage();
+    if (!isScrolled) {
+      await populateHighlights(userDetails, scrollingUL);
+    } else {
+      isScrolled = false;
+    }
+  })
+}
 
 /**
  * Method to set that popup was open
@@ -158,7 +215,8 @@ $(document).ready(async () => {
       {
         // await chrome.extension.getBackgroundPage().console.log("I am at the end", userDetails);
         if (userDetails != undefined && scrollingUL != undefined) {
-          await populateHighlights(userDetails, scrollingUL);
+          isScrolled = true;
+          await populateHighlights(userDetails, scrollingUL, globalCurrentSpace);
         }
       }
     })
@@ -168,8 +226,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     afterHighlight_popup.to_include = 0;
     await setOpenPage();
-
-
     let beforeLogin = document.getElementById('before_login');
     let afterLogin = document.getElementById('after_login');  
 
@@ -207,12 +263,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Open /spaces for particular user when spaces button is clicked
         spacesButton.onclick = () => {
           if (userDetails.isLoggedIn) {
-            beforeHighlight_popup.openSpaces({ usertoken: userDetails.userData.accesstoken });
+            beforeHighlight_popup.openSpaces({ userid: userDetails.userData.id, usertoken: userDetails.userData.accesstoken });
           }
         }
         // Populate highlights for user
-        await populateHighlights(isUserLoggedIn,scrollingUL);
+        chrome.storage.sync.get('currentSpace', async (data) => {
+          globalCurrentSpace = data.currentSpace || -1;
+          console.log(globalCurrentSpace);
+          await populateHighlights(isUserLoggedIn,scrollingUL);
+          await populateSpacesMain(userDetails);
+          registerSelectOptionChange({ userDetails, scrollingUL });
+        });
       } catch(error) {
+        console.log(error);
         await handleError();
       }
     } else {
@@ -224,6 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         await beforeHighlight_popup.registerLoginSignup();
       } catch(error) {
+        console.log(error);
         await handleError();
       }
     }
@@ -263,6 +327,7 @@ const modalOperation = (mainAnchor, iElement, highlighterid,userInfo) => {
       mainAnchor.innerHTML = '';
       modal.style.display = 'none';
     } catch(error) {
+      console.log(error);
       await handleError();
     }
   };

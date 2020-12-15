@@ -58,19 +58,24 @@ const getMultipleElements = (string, regexp) => {
  * on the newly created div
  */
 const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue }) => {
-  decisionDiv.addEventListener('click', (event) => {
-    chrome.runtime.sendMessage({
-      'message':'setText',
-      'data': selectedHTML, 
-      xpath: xPath, 
-      highlightColor: colorPickerValue
-    }, (response) => {
-      let highlightid;
-      if (response !== undefined) {
-        highlightid = response.data.id;
-      }
-      decisionDiv.remove();
-      afterHighlight.highlight(xPath, selectedHTML, highlightid, colorPickerValue);
+  decisionDiv.addEventListener('click', async (event) => {
+    chrome.storage.sync.get("currentSpace", ({ currentSpace }) => {
+      console.log("CurrentSpace: ", currentSpace);
+      currentSpace = currentSpace || -1;
+      chrome.runtime.sendMessage({
+        'message':'setText',
+        'data': selectedHTML, 
+        xpath: xPath, 
+        highlightColor: colorPickerValue,
+        currentSpace
+      }, (response) => {
+        let highlightid;
+        if (response !== undefined) {
+          highlightid = response.data.id;
+        }
+        decisionDiv.remove();
+        afterHighlight.highlight(xPath, selectedHTML, highlightid, colorPickerValue);
+      });
     });
   })
 };

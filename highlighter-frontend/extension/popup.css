@@ -44,12 +44,13 @@ button {
   #before_login, #after_login {
     display: none;
     width: 100%;
+    margin-top: 3%;
   }
 
   #highlight_list {
     width: 100%;
     padding-inline-start: 0%;
-    height: 258px;
+    height: 219px;
     overflow: auto;
     overflow-x: hidden;
     padding: 0%;
@@ -164,7 +165,7 @@ button {
   background-color:  #ffffff;
   width: 94%;
   padding-inline-start: 0%;
-  height: 250px;
+  height: 219px;
   padding: 0%;
   margin: 0%;
   position: absolute;
@@ -194,4 +195,14 @@ button {
   height: 20%;
   display: inline-block;
   background-color: black;
+}
+
+.spaces-options-div {
+  width: 100%;
+  height: 25px;
+}
+
+.spaces-options {
+  width: 100%;
+  height: 100%;
 }
