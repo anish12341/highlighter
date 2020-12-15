@@ -423,6 +423,7 @@ const registerSelectOptionChange = ({ userDetails, scrollingUL }) => {
   const spacesSelection = $("#spaces_selection");
   spacesSelection.change(async function() {
     globalCurrentSpace = $(this).val();
+    console.log("I am updated!!");
     await chrome.storage.sync.set({ currentSpace: $(this).val() });
     const highlighList = $("#highlight_list");
     const loaderDiv = $("#loader_div");

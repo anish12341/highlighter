@@ -215,6 +215,7 @@ router.delete('/', auth.authenticateJWT, (req, res, next) => {
     );
   })
   .catch(error => {
+    console.log("Error: ", error);
     serverError.data = error;
     return res.status(500).send(
       serverError

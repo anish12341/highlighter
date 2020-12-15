@@ -240,6 +240,7 @@ const createSpaceMarkup = (spaceData) => {
 };
 
 const loadAllSpaces = (userid) => {
+  $("#no_spaces").hide();
   fetch(`${location.origin}/spaces/all/api?userid=${userid}`,
   {
     method: "GET"
@@ -249,9 +250,14 @@ const loadAllSpaces = (userid) => {
     console.log(spaces);
     const spacesUL = $("#spaces");
     spaceLoader.hide();
-    spaces.data.map(eachSpace => {
-      spacesUL.append(createSpaceMarkup(eachSpace));
-    })
+    if (spaces.data.length > 0) {
+      spaces.data.map(eachSpace => {
+        spacesUL.append(createSpaceMarkup(eachSpace));
+      })
+    } else {
+      $("#no_spaces").show();
+    } 
+    
   })
 }
 {/* <li class="notification-content-li"><span class="standard-highlight">Anish</span> added sdsdsyou in
@@ -437,6 +443,7 @@ document.addEventListener("DOMContentLoaded", function(){
         })
         .then(response => response.json())
         .then(response => {
+          $("#no_spaces").hide();
           console.log(memberNames, memberList)
           modal.style.display = "none";
           console.log(response.space.members);
