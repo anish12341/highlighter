@@ -20,7 +20,8 @@ window.addEventListener('load',(event) => {
       chrome.runtime.sendMessage({'message':'getHighlight', 'userid': userDetails.userData.id, 'accesstoken': userDetails.userData.accesstoken}, (highlights) => {
         if (highlights.success) {
           highlights.data.forEach(each => {
-            afterHighlight.highlight(each.xpath, each.selected_html, each.id, each.highlight_color);
+            console.log(each);
+            afterHighlight.highlight(each.xpath, each.selected_html, each.id, each.highlight_color, each.highlight_color);
           });
         }
       });
@@ -118,15 +119,16 @@ const createHighlightButton = () => {
   const highlightButton = document.createElement("button");
   highlightButton.id = "highlightme";
   Object.assign(highlightButton.style, {
-    height:"auto",
-    width:"auto",
+    height:"30px",
+    width:"100px",
     backgroundColor:"#ffff4d",
     borderRadius:"5px",
     color:"#000000",
     fontFamily:"monospace",
-    fontSize: "80%",
+    fontSize: "9px",
     fontWeight: "bold",
-    marginLeft: '5%'
+    marginLeft: '10px',
+    cursor: "pointer"
   });
 
   highlightButton.onmouseover = function() {
@@ -146,8 +148,15 @@ const createColorDropbox = ({ highlightButton }) => {
   const colorDropbox = document.createElement("select");
   colorDropbox.id = "color_picker";
   Object.assign(colorDropbox.style, {
-    marginLeft: '5%',
-    marginRight: '5%'
+    marginLeft: '10px',
+    marginRight: '10px',
+    padding: '0',
+    cursor: 'pointer',
+    width: '70px',
+    height: '30px',
+    backgroundColor: 'white',
+    fontFamily: 'monospace',
+    fontSize: '11.5px'
   });
 
   const yellowOption = document.createElement("option");
@@ -198,7 +207,7 @@ const getDivConfiguration = (object, event) => {
       object.style[key] = style[key];
     }
   };
-
+  console.log("I am here!")
   const highlightButton = createHighlightButton();
   object.appendChild(highlightButton);
   object.appendChild(createColorDropbox({ highlightButton }));

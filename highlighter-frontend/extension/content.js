@@ -63,7 +63,7 @@ const eliminateDelete = (de, d, element) => {
 /**
  * Method to do something when highlighted text is clicked!
  */
-const highlightClicked = (element) => {
+const highlightClicked = (element, deleteButtonColor = '#ffff4d') => {
   console.log(typeof element, element.style);
   element.style.border = '1px solid #111111';
   element.style.cursor = 'pointer';
@@ -91,19 +91,21 @@ const highlightClicked = (element) => {
   // Delete button inside d
   let deleteButton = document.createElement('button');
   deleteButton.id = 'deleteHighlight';
-  deleteButton.style.height = '60%';
-  deleteButton.style.width = 'auto';
-  deleteButton.style.backgroundColor = '#ffff4d';
+  deleteButton.style.height = '25px';
+  deleteButton.style.width = '60px';
+  deleteButton.style.backgroundColor = deleteButtonColor;
   deleteButton.style.borderRadius = '5px';
   deleteButton.style.color = '#000000';
   deleteButton.style.fontFamily = 'monospace';
+  deleteButton.style.fontSize = '11px';
+  deleteButton.style.cursor = 'pointer';
   deleteButton.onmouseover = () => {
     deleteButton.style.color = 'white';
     deleteButton.style.backgroundColor = 'black';
   }
   deleteButton.onmouseout = () => {
     deleteButton.style.color = '#000000';
-    deleteButton.style.backgroundColor = '#ffff4d';
+    deleteButton.style.backgroundColor = deleteButtonColor;
   }
   deleteButton.innerHTML = 'Delete?';
 
@@ -159,17 +161,19 @@ const highlight = (path, selectedText, highlightid = undefined, highlightColor =
     let spanElement = document.createElement('span');
     spanElement.innerHTML = spanString;
     spanElement.style.backgroundColor = highlightColor;
+    spanElement.style.cursor = 'pointer';
     spanElement.dataset.highlight = true;
     spanElement.dataset.highlightid = highlightid;
 
     let wrapper = document.createElement('div');
+    // wrapper.id = "highlight_div";
     wrapper.appendChild(spanElement);
 
     innerContent = innerContent.substring(0,index) + wrapper.innerHTML + innerContent.substring(index + selectedText.length);
     element.innerHTML = innerContent;
     element.childNodes.forEach(element => {
       if (element.dataset && element.dataset.highlight) {
-        element.onclick = () => {highlightClicked(element)};
+        element.onclick = () => {highlightClicked(element, element.style.backgroundColor)};
       }
     });
   }
@@ -295,7 +299,8 @@ window.addEventListener('load',(event) => {
       chrome.runtime.sendMessage({'message':'getHighlight', 'userid': userDetails.userData.id, 'accesstoken': userDetails.userData.accesstoken}, (highlights) => {
         if (highlights.success) {
           highlights.data.forEach(each => {
-            afterHighlight.highlight(each.xpath, each.selected_html, each.id, each.highlight_color);
+            console.log(each);
+            afterHighlight.highlight(each.xpath, each.selected_html, each.id, each.highlight_color, each.highlight_color);
           });
         }
       });
@@ -393,15 +398,16 @@ const createHighlightButton = () => {
   const highlightButton = document.createElement("button");
   highlightButton.id = "highlightme";
   Object.assign(highlightButton.style, {
-    height:"auto",
-    width:"auto",
+    height:"30px",
+    width:"100px",
     backgroundColor:"#ffff4d",
     borderRadius:"5px",
     color:"#000000",
     fontFamily:"monospace",
-    fontSize: "80%",
+    fontSize: "9px",
     fontWeight: "bold",
-    marginLeft: '5%'
+    marginLeft: '10px',
+    cursor: "pointer"
   });
 
   highlightButton.onmouseover = function() {
@@ -421,8 +427,15 @@ const createColorDropbox = ({ highlightButton }) => {
   const colorDropbox = document.createElement("select");
   colorDropbox.id = "color_picker";
   Object.assign(colorDropbox.style, {
-    marginLeft: '5%',
-    marginRight: '5%'
+    marginLeft: '10px',
+    marginRight: '10px',
+    padding: '0',
+    cursor: 'pointer',
+    width: '70px',
+    height: '30px',
+    backgroundColor: 'white',
+    fontFamily: 'monospace',
+    fontSize: '11.5px'
   });
 
   const yellowOption = document.createElement("option");
@@ -473,7 +486,7 @@ const getDivConfiguration = (object, event) => {
       object.style[key] = style[key];
     }
   };
-
+  console.log("I am here!")
   const highlightButton = createHighlightButton();
   object.appendChild(highlightButton);
   object.appendChild(createColorDropbox({ highlightButton }));
