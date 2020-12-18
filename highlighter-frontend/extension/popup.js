@@ -113,7 +113,21 @@ const deleteHighlight = () => {
   )
 };
 
-module.exports = {urlFromHighlight, useAPI, handleError};
+const copySelectedHtml = ({ parentUL, selectedHtmlElement }) => {
+  parentUL.appendChild(selectedHtmlElement);
+  selectedHtmlElement.select();
+  document.execCommand("copy");
+  parentUL.removeChild(selectedHtmlElement);
+  $("#copy_toast_div").fadeIn(1800);
+  $("#copy_toast_div").fadeOut(1800);
+
+  // selectedHtmlElement.select();
+  // // selectedHtmlElement.setSelectionRange(0, 99999);
+  // document.execCommand('copy');
+  console.log("Copied!!");
+}
+
+module.exports = {urlFromHighlight, useAPI, handleError, copySelectedHtml};
 },{}],3:[function(require,module,exports){
 // A module within popup functionality
 const host = 'http://127.0.0.1:3000';
@@ -341,6 +355,10 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                   let li1 = document.createElement('li');
                   li1.innerHTML = eachHighlight.selected_html;
                   
+                  let hiddenInput = document.createElement('input');
+                  // hiddenInput.type = 'hidden';
+                  hiddenInput.value = eachHighlight.selected_html;
+
                   let anchor = document.createElement('a');
                   anchor.href = eachHighlight.url;
                   anchor.innerHTML = eachHighlight.url_title;
@@ -364,6 +382,18 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                   iElement.classList.add('fa-trash-alt');
                   iElement.onclick = () => {modalOperation(mainAnchor, iElement, eachHighlight.id, userInfo)};
                   mainUL.appendChild(iElement);
+
+                  let copyElement = document.createElement('i');
+                  copyElement.title = 'Copy Highlight!';
+                  copyElement.classList.add('copy-sign');
+                  copyElement.classList.add('fa');
+                  copyElement.classList.add('fa-clipboard');
+                  copyElement.onclick = () => {
+                    afterHighlight_popup.copySelectedHtml({ 
+                      parentUL: UL,
+                      selectedHtmlElement: hiddenInput
+                    })};
+                  mainUL.appendChild(copyElement);
                 });
                 mainUL.style.display = 'inline-block';
                 loaderDiv.style.display = 'none';

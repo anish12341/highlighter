@@ -95,6 +95,10 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                   let li1 = document.createElement('li');
                   li1.innerHTML = eachHighlight.selected_html;
                   
+                  let hiddenInput = document.createElement('input');
+                  // hiddenInput.type = 'hidden';
+                  hiddenInput.value = eachHighlight.selected_html;
+
                   let anchor = document.createElement('a');
                   anchor.href = eachHighlight.url;
                   anchor.innerHTML = eachHighlight.url_title;
@@ -118,6 +122,18 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                   iElement.classList.add('fa-trash-alt');
                   iElement.onclick = () => {modalOperation(mainAnchor, iElement, eachHighlight.id, userInfo)};
                   mainUL.appendChild(iElement);
+
+                  let copyElement = document.createElement('i');
+                  copyElement.title = 'Copy Highlight!';
+                  copyElement.classList.add('copy-sign');
+                  copyElement.classList.add('fa');
+                  copyElement.classList.add('fa-clipboard');
+                  copyElement.onclick = () => {
+                    afterHighlight_popup.copySelectedHtml({ 
+                      parentUL: UL,
+                      selectedHtmlElement: hiddenInput
+                    })};
+                  mainUL.appendChild(copyElement);
                 });
                 mainUL.style.display = 'inline-block';
                 loaderDiv.style.display = 'none';
