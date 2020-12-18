@@ -316,7 +316,21 @@ const deleteHighlight = () => {
   )
 };
 
-module.exports = {urlFromHighlight, useAPI, handleError};
+const copySelectedHtml = ({ parentUL, selectedHtmlElement }) => {
+  parentUL.appendChild(selectedHtmlElement);
+  selectedHtmlElement.select();
+  document.execCommand("copy");
+  parentUL.removeChild(selectedHtmlElement);
+  $("#copy_toast_div").fadeIn(1800);
+  $("#copy_toast_div").fadeOut(1800);
+
+  // selectedHtmlElement.select();
+  // // selectedHtmlElement.setSelectionRange(0, 99999);
+  // document.execCommand('copy');
+  console.log("Copied!!");
+}
+
+module.exports = {urlFromHighlight, useAPI, handleError, copySelectedHtml};
 },{}],5:[function(require,module,exports){
 // A module within popup functionality
 const host = 'http://127.0.0.1:3000';
