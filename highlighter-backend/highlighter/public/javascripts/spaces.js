@@ -141,24 +141,63 @@ const deleteSpaceModal = ({ event, space_id, space_name }) => {
                   <div class="other-highlight-content">My Highlight asdsduasydu ahsdysudyusydaydyaiudiausiduaiduiasudiuasduasiudiasudisauiduasiudiasudasuiduasiduasiudaisudiasudiasudiau</div>
               </div>
             </li> */}
+{/* <li class="other-each-highlight">
+              <div class="other-highlight-main">
+                <div class="other-each-highlight-div">
+                  <div class="other-person-name">
+                    <span class="standard-highlight">Pragya</span>
+                  </div>
+                  <div class="other-highlight-content">
+                    <a target="_blank" href="https://www.w3schools.com/html/">ttributes,</a>
+                  </div>
+                </div>
+                <div class="copy-sign-div">
+                  <i title="Copy Highlight!" class="other-copy-sign fa fa-ellipsis-v"></i>
+                </div>
+              </div>
+            </li>
 
+<li class="my-each-highlight">
+<div class="each-highlight-content">
+<div class="my-each-highlight-div">
+  <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">give askjksjdkajkjkasdjkasjdkas ajdkasj jkja smjs akjfkkjsajdkjaskdjakdjkasjdkajdksjakdajskdjsa askdjskdjaa ajdksjkdj  you frei</a>
+  
+</div>
+<i title="Copy Highlight!" class="copy-sign fa fa-ellipsis-v"></i>
+</div>
+</li> */}
 const createHighlightMarkup = ({ myHighlight, highlightData }) => {
   // console.log(myHighlight, highlightData)
   const liClass = myHighlight ? "my-each-highlight" : "other-each-highlight";
+  const parentDivClass = myHighlight ? "each-highlight-content" : "other-highlight-main";
   const divClass = myHighlight ? "my-each-highlight-div" : "other-each-highlight-div";
+  const copySignClass = myHighlight ? "copy-sign fa fa-ellipsis-v" : "other-copy-sign fa fa-ellipsis-v";
   // console.log(liClass, divClass);
   const parentLi = document.createElement("li");
   parentLi.className = liClass;
 
+  const parentDiv = document.createElement("div");
+  parentDiv.className = parentDivClass;
+
   const childDiv = document.createElement("div");
   childDiv.className = divClass;
 
-  parentLi.appendChild(childDiv);
+  const copySign = document.createElement("i");
+  copySign.classList = copySignClass;
+  copySign.title = "Menu";
+  copySign.onclick = () => {
+    console.log("Onclick");
+  };
 
   if (myHighlight) {
+    parentDiv.appendChild(childDiv);
+    parentDiv.appendChild(copySign);
+    parentLi.appendChild(parentDiv);
     childDiv.innerHTML = `<a target="_blank" href="${highlightData.url}">${highlightData.selected_html}</a>`;
     return parentLi;
   }
+
+  
   
   const memberNameDiv = document.createElement("div");
   memberNameDiv.className = "other-person-name";
@@ -175,6 +214,14 @@ const createHighlightMarkup = ({ myHighlight, highlightData }) => {
   highlightContenDiv.innerHTML = `<a target="_blank" href="${highlightData.url}">${highlightData.selected_html}</a>`;
 
   childDiv.appendChild(highlightContenDiv);
+  parentDiv.appendChild(childDiv);
+
+  const copyDiv = document.createElement("div");
+  copyDiv.className = "copy-sign-div";
+
+  copyDiv.appendChild(copySign);
+  parentDiv.appendChild(copyDiv);
+  parentLi.appendChild(parentDiv);
 
   return parentLi;
 }
