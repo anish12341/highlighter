@@ -13,6 +13,7 @@
     * After forking, you will be able to see the new copy of this repo in your account's repository.
 * Clone your newly created repo copy to your local machine.
     * You can use any Git GUI for this.
+    * Checkout ```development``` branch
 * Project specific installations
     * Installations for Chrome extension code
         * In terminal/cmd, go to a file location where Git repo is cloned 
