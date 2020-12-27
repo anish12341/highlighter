@@ -233,10 +233,31 @@
       .guiding-message {
         margin: 0;
         font-family: monospace;
-        margin-top: 35%;
-        text-align: center;
-        /* display: none; */
         z-index: 4;
+        align-self: center;
+      }
+
+      .guiding-message-div {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+      }
+
+      .no-highlight-message {
+        margin: 0;
+        font-family: monospace;
+        z-index: 4;
+        align-self: center;
+      }
+
+      .no-highlight-message-div {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        display: none;
+        justify-content: center;
       }
 
       .highlights-list {
@@ -251,7 +272,8 @@
 
       .my-each-highlight {
         width: 100%;
-        height: 5%
+        height: 5%;
+        position: relative;
       }
 
       .my-each-highlight-div {
@@ -267,8 +289,9 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         cursor: pointer;
+        padding-top: 1%;
         padding-left: 1%;
-        padding-right: 1%;
+        padding-right: 2%;
         font-family: monospace;
         border-radius: 5px;
       }
@@ -276,19 +299,20 @@
       .other-each-highlight {
         width: 100%;
         height: 7%; 
+        position: relative;
       }
 
       .other-each-highlight-div {
-        display: block;
+        display: inline-block;
         background-color: white;
-        position: absolute;
+        /* position: absolute; */
         width: fit-content;
         margin-left: 2%;
         margin-top: 1%;
         padding-left: 1%;
         padding-right: 1%;
         /* background-color: white; */
-        left: 0;
+        float: left;
         max-width: 60%;
         font-family: monospace;
         border-radius: 5px;
@@ -520,6 +544,141 @@
         background-color: #f7e68f;
       }
 
+      .copy-sign {
+        position: absolute;
+        right: 2.5%;
+        top: 37%;
+        cursor: pointer;
+        /* margin: auto; */
+      }
+
+      .each-highlight-content {
+
+      }
+
+      .other-highlight-main {
+        /* position: relative;
+        width: 100%;
+        height: fit-content; */
+      }
+
+      .other-copy-sign {
+        /* position: absolute;
+        right: 2.5%;
+        top: 37%; */
+        margin-top: 230%;
+        background-color: white;
+        cursor: pointer;
+      }
+
+      .example-1 {
+        width: 100%;
+        height: 7%;
+      }
+
+      .example-2 {
+        /* width: fit-content;
+        height: 100%;
+        display: inline; */
+      }
+
+      .example-vertical {
+        height: 100%;
+        display: inline-block;
+        float: left;
+      }
+
+      .menu-sign-div {
+        height: fit-content;
+        display: inline-block;
+        float: left;
+        margin: 0;
+      }
+
+      .menu-div {
+        width: 100px;
+        height: 80px;
+        position: absolute;
+        background-color: #f3e1a8;
+        border: 1px solid black;
+        border-radius: 5px;
+        text-align: left;
+        display: none;
+      }
+
+      .other-menu-div {
+        width: 100px;
+        height: 40px;
+        position: absolute;
+        background-color: #f3e1a8;
+        border: 1px solid black;
+        border-radius: 5px;
+        text-align: left;
+        display: none;
+      }
+
+      .menu-item-copy {
+        width: 100%;
+        height: 50%;
+        display: flex;
+        justify-content: center;
+        border-bottom: 1px solid black;
+        cursor: pointer;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+      }
+
+      .other-menu-item-copy {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+
+      .menu-item-delete {
+        width: 100%;
+        height: 50%;
+        display: flex;
+        justify-content: center;
+        cursor: pointer;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+      }
+
+      .menu-item-copy:hover, .other-menu-item-copy:hover, .menu-item-delete:hover {
+        background-color: black;
+        color: white;
+      }
+
+      .menu-item-content {
+        align-self: center;
+        font-family: monospace;
+        font-size: 15px;
+      }
+
+      .copy-toast-div {
+        width: 150px;
+        text-align: center;
+        position: absolute;
+        top: 85%;
+        left: 42%;
+        background-color: grey;
+        /* opacity: 0.8; */
+        border-radius: 5px;
+        display: none;
+        z-index: 11;
+      }
+
+      .copy-toast-message {
+        margin: 0;
+        padding: 0;
+        font-weight: bold;
+        font-family: monospace;
+        font-size: 15px;
+      }
+
     </style>
   </head>
   <body>
@@ -577,9 +736,92 @@
           </div>
         </div>
         <div class="highlight-content">
-          <p id="guiding_message" class="guiding-message">Your <span class="standard-highlight">highlights</span> will be shown here!
-          Please select any space from the list</p>
+          <div id="no_highlight_message_div" class="no-highlight-message-div">
+            <p id="no_highlight_message" class="no-highlight-message">
+              This <span class="standard-highlight">space</span> does not have any highlights!
+            </p>
+          </div>
+          <div id="guiding_message_div" class="guiding-message-div">
+            <p id="guiding_message" class="guiding-message">Your <span class="standard-highlight">highlights</span> will be shown here!
+            Please select any space from the list</p>
+          </div>
           <ul id="space_highlights_data" class="highlights-list">
+            <!-- <li class="my-each-highlight">
+              <div class="my-each-highlight-div">
+                <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">give you frei</a>
+                <i title="Copy Highlight!" class="copy-sign fa fa-clipboard"></i>
+              </div>
+            </li> -->
+            <li class="my-each-highlight">
+              <div class="each-highlight-content">
+              <div class="my-each-highlight-div">
+                <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">g</a>
+                
+              </div>
+              <i title="Copy Highlight!" class="copy-sign fa fa-ellipsis-v"></i>
+            </div>
+            </li>
+            <li class="my-each-highlight">
+              <div class="each-highlight-content">
+              <div class="my-each-highlight-div">
+                <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">give askjksjdkajkjkasdjkasjdkas ajdkasj jkja smjs akjfkkjsajdkjaskdjakdjkasjdkajdksjakdajskdjsa askdjskdjaa ajdksjkdj  you frei</a>
+                
+              </div>
+              <i title="Copy Highlight!" class="copy-sign fa fa-ellipsis-v"></i>
+            </div>
+            </li>
+            <li class="other-each-highlight">
+              <div class="other-highlight-main">
+                <div class="other-each-highlight-div">
+                  <div class="other-person-name">
+                    <span class="standard-highlight">Pragya</span>
+                  </div>
+                  <div class="other-highlight-content">
+                    <a target="_blank" href="https://www.w3schools.com/html/">ou will find complete references about HTML elements, 
+                    attributes, events, color names, entities, character-sets, URL encoding, 
+                    l</a>
+                  </div>
+                </div>
+                <div class="menu-sign-div">
+                  <i title="Copy Highlight!" class="other-copy-sign fa fa-ellipsis-v"></i>
+                </div>
+              </div>
+            </li>
+            <li class="other-each-highlight">
+              <div class="other-highlight-main">
+                <div class="other-each-highlight-div">
+                  <div class="other-person-name">
+                    <span class="standard-highlight">Pragya</span>
+                  </div>
+                  <div class="other-highlight-content">
+                    <a target="_blank" href="https://www.w3schools.com/html/">ttributes,</a>
+                  </div>
+                </div>
+                <div class="menu-sign-div">
+                  <i title="Copy Highlight!" class="other-copy-sign fa fa-ellipsis-v"></i>
+                </div>
+              </div>
+            </li>
+            <!-- <li class="example-1">
+              <div class="example-2">
+                <div class="example-vertical">
+                  <div>Anish</div>
+                  <div>Content</div>
+                </div>
+                <div class="example-vertical-2">
+                  <i title="Copy Highlight!" class="other-copy-sign fa fa-ellipsis-v"></i>
+                </div>
+              </div>
+            </li> -->
+            <!-- <li class="my-each-highlight">
+              <div>
+              <div class="my-each-highlight-div">
+                <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">give </a>
+                
+              </div>
+              <i title="Copy Highlight!" class="copy-sign fa fa-ellipsis-v"></i>
+            </div>
+            </li> -->
             <!-- <li class="my-each-highlight">
               <div class="my-each-highlight-div">
                   <a>This highlight is done by me for this collab space</a>
@@ -603,8 +845,22 @@
               </div>
             </li> -->
           </ul>
+          <div class="copy-toast-div" id="copy_toast_div">
+            <p class="copy-toast-message">Highlight Copied!</p>
+          </div>
           <div id="loader_div_highlight">
             <span class="loader-highlight"><span class="loader-inner"></span></span>
+          </div>
+          <div id="delete_highlight_modal" class="delete-highlight-modal">
+
+            <div class="delete-highlight-modal-content">
+              <div class="delete-highlight-modal-header">
+                <span id="delete_highlight_cancel" class="close">&times;</span>
+                <h2 id="delete_highlight_message">Are you sure you want to delete this highlight</h2>
+              </div>
+              <button id="yes_delete_highlight">Yes</button>
+              <button id="no_delete_highlight">No</button>
+            </div>
           </div>
         </div>
       </div>
@@ -614,7 +870,7 @@
 
         <div class="modal-content">
           <div class="modal-header">
-            <span class="close">&times;</span>
+            <span id="modal_close_button" class="close">&times;</span>
             <h2>Create a new collab space</h2>
           </div>
           <div class="modal-form">
@@ -664,6 +920,19 @@
           </div>
           <button id="yes_delete_space">Yes</button>
           <button id="no_delete_space">No</button>
+        </div>
+      </div>
+      <div id="menu_div" class="menu-div">
+        <div id="menu_copy" class="menu-item-copy">
+          <div class="menu-item-content">Copy</div>
+        </div>
+        <div id="menu_delete" class="menu-item-delete">
+          <div class="menu-item-content">Delete</div>
+        </div>
+      </div>
+      <div id="other_menu_div" class="other-menu-div">
+        <div id="other_menu_copy" class="other-menu-item-copy">
+          <div class="menu-item-content">Copy</div>
         </div>
       </div>
     </div>
