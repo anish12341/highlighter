@@ -78,14 +78,15 @@ const deleteModaljQuery = (deleteModal) => {
 }
 
 const deleteSpaceAPI = ({ event, space_id, deleteModal }) => {
-  fetch(`${location.origin}/spaces/delete/${space_id}`,
+  fetch(`${location.origin}/spaces/${space_id}`,
   {
     method: 'DELETE',
     body: JSON.stringify({
       user_id: globalUserDetails.id
     }),
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      authorization: `bearer ${globalUserDetails.accesstoken}`
     }
   })
   .then(response => response.json())
@@ -291,9 +292,12 @@ const getSpaceHighlights = ({ space_id }) => {
   $("#guiding_message_div").hide();
   $("#loader_div_highlight").show();
 
-  fetch(`${location.origin}/spaces/${space_id}/highlights`,
+  fetch(`${location.origin}/spaces/${space_id}/highlights?userid=${globalUserDetails.id}`,
   {
-    method: "GET"
+    method: "GET",
+    headers: {
+      authorization: `bearer ${globalUserDetails.accesstoken}`
+    }
   })
   .then(response => response.json())
   .then(({ data: highlights }) => {

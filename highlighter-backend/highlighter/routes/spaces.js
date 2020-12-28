@@ -34,6 +34,12 @@ let successResponse = {
   data: {success: true}
 }
 
+let unauthorizedRes = {
+  message: 'You are not authorized!',
+  status: false,
+  data: {}
+};
+
 router.get('/', (req, res, next) => {
   res.render('spaces/home', {});
 });
@@ -105,22 +111,22 @@ router.post('/:userId', (req, res, next) => {
         });
 });
 
-router.delete('/:userId', (req, res, next) => {
-    console.log("debug 2");
-    var values = { isDeleted: true };
-    var selector = {
-        where: { id: req.params.userId }
-    };
-    User.update(values, selector)
-        .then(
-            User.findOne({ where: { id: req.params.userId } })
-                .then(user => {
-                    console.log('User data updated ', user);
-                    displayAllUserInfo(res);
-            })
+// router.delete('/:userId', (req, res, next) => {
+//     console.log("debug 2");
+//     var values = { isDeleted: true };
+//     var selector = {
+//         where: { id: req.params.userId }
+//     };
+//     User.update(values, selector)
+//         .then(
+//             User.findOne({ where: { id: req.params.userId } })
+//                 .then(user => {
+//                     console.log('User data updated ', user);
+//                     displayAllUserInfo(res);
+//             })
 
-        .catch( serverError));
-});
+//         .catch( serverError));
+// });
 
 router.get('/:userId/payments', (req, res, next) => {
   res.render('payments/payments', {userId: req.params.userId});
@@ -257,7 +263,7 @@ router.post('/create/new', (req, res, next) => {
   })  
 });
 
-router.get('/all/api', (req, res, next) => {
+router.get('/all/api', auth.authenticateJWT, (req, res, next) => {
   const schema = Joi.object().keys({
     userid: Joi.number().required().label('User ID'),
   });
@@ -268,6 +274,10 @@ router.get('/all/api', (req, res, next) => {
     return res.status(400).send(
       badRequest
     );
+  }
+
+  if (req.user.id != req.query.userid) {
+    return res.status(403).send(unauthorizedRes);
   }
 
   sequelize.query(`SELECT res.space_name, res.created_by, res.space_id,res."isAdmin",
@@ -301,42 +311,50 @@ router.get('/all/api', (req, res, next) => {
   })
 });
 
-router.delete('/delete/:space_id', (req, res, next) => {
-  const schema = Joi.object().keys({
-    user_id: Joi.number().required().label('User ID')
-  });
-
-  const joiResult = Joi.validate(req.body, schema);
-  if (joiResult.error) {
-    console.log(joiResult.error);
-    return res.status(400).send(
-      badRequest
-    );
-  }
-
-  const { space_id } = req.params;
-  Spaces
-  .destroy({
-    where: {
-      space_id
+router.delete('/:space_id', auth.authenticateJWT, (req, res, next) => {
+  try {
+    const schema = Joi.object().keys({
+      user_id: Joi.number().required().label('User ID')
+    });
+  
+    const joiResult = Joi.validate(req.body, schema);
+    if (joiResult.error) {
+      console.log(joiResult.error);
+      return res.status(400).send(
+        badRequest
+      );
     }
-  })
-  .then(response => {
-    return res.status(200).send({
-      status: true,
-      message: 'Space deleted successfully!'
+  
+    if (req.user.id != req.body.user_id) {
+      return res.status(403).send(unauthorizedRes);
+    }
+  
+    const { space_id } = req.params;
+    Spaces
+    .destroy({
+      where: {
+        space_id
+      }
     })
-  })
-  .catch(error => {
-    console.log(error)
-    serverError.data = error;
-    return res.status(500).send(
-      serverError
-    )
-  })
+    .then(response => {
+      return res.status(200).send({
+        status: true,
+        message: 'Space deleted successfully!'
+      })
+    })
+    .catch(error => {
+      console.log(error)
+      serverError.data = error;
+      return res.status(500).send(
+        serverError
+      )
+    });
+  } catch(error) {
+    console.log("Server: ", error);
+  }
 });
 
-router.get('/:space_id/highlights', (req, res, next) => {
+router.get('/:space_id/highlights', auth.authenticateJWT, (req, res, next) => {
   const schema = Joi.object().keys({
     space_id: Joi.number().required().label('Space ID')
   });
@@ -347,6 +365,22 @@ router.get('/:space_id/highlights', (req, res, next) => {
     return res.status(400).send(
       badRequest
     );
+  }
+
+  const querySchema = Joi.object().keys({
+    userid: Joi.number().required().label('User ID')
+  });
+
+  const queryJoiResult = Joi.validate(req.query, querySchema);
+  if (queryJoiResult.error) {
+    console.log(queryJoiResult.error);
+    return res.status(400).send(
+      badRequest
+    );
+  }
+
+  if (req.user.id != req.query.userid) {
+    return res.status(403).send(unauthorizedRes);
   }
 
   const { space_id } = req.params;
