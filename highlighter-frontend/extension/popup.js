@@ -457,15 +457,13 @@ const registerSelectOptionChange = ({ userDetails, scrollingUL }) => {
     await chrome.storage.sync.set({ currentSpace: $(this).val() });
     const highlighList = $("#highlight_list");
     const loaderDiv = $("#loader_div");
+    highlighList.unbind('scroll');
     highlighList.empty();
     loaderDiv.show();
     console.log("");
     await setOpenPage();
-    if (!isScrolled) {
-      await populateHighlights(userDetails, scrollingUL);
-    } else {
-      isScrolled = false;
-    }
+    await populateHighlights(userDetails, scrollingUL);
+    bindHighlightListScroll();
   })
 }
 
@@ -482,20 +480,37 @@ const setOpenPage = () => {
     }
   )
 }
+
+const bindHighlightListScroll = () => {
+  $('#highlight_list').bind('scroll', async () => {
+    // await chrome.extension.getBackgroundPage().console.log('Scrolling using jQuery');
+    // await chrome.extension.getBackgroundPage().console.log($('#highlight_list').scrollTop(), $('#highlight_list').innerHeight(), $('#highlight_list')[0].scrollHeight);
+    if($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight()>=($('#highlight_list')[0].scrollHeight-0.4))
+    {
+      // await chrome.extension.getBackgroundPage().console.log("I am at the end", userDetails);
+      if (userDetails != undefined && scrollingUL != undefined) {
+        await populateHighlights(userDetails, scrollingUL, globalCurrentSpace);
+      }
+    }
+  })
+}
 $(document).ready(async () => {
   // await chrome.extension.getBackgroundPage().console.log('I am in jQuery');
-  $('#highlight_list').bind('scroll', async () => {
-      // await chrome.extension.getBackgroundPage().console.log('Scrolling using jQuery');
-      // await chrome.extension.getBackgroundPage().console.log($('#highlight_list').scrollTop(), $('#highlight_list').innerHeight(), $('#highlight_list')[0].scrollHeight);
-      if($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight()>=($('#highlight_list')[0].scrollHeight-0.4))
-      {
-        // await chrome.extension.getBackgroundPage().console.log("I am at the end", userDetails);
-        if (userDetails != undefined && scrollingUL != undefined) {
-          isScrolled = true;
-          await populateHighlights(userDetails, scrollingUL, globalCurrentSpace);
-        }
-      }
-    })
+  // $('#highlight_list').bind('scroll', async () => {
+  //     // await chrome.extension.getBackgroundPage().console.log('Scrolling using jQuery');
+  //     // await chrome.extension.getBackgroundPage().console.log($('#highlight_list').scrollTop(), $('#highlight_list').innerHeight(), $('#highlight_list')[0].scrollHeight);
+  //     if($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight()>=($('#highlight_list')[0].scrollHeight-0.4))
+  //     {
+  //       // await chrome.extension.getBackgroundPage().console.log("I am at the end", userDetails);
+  //       if (userDetails != undefined && scrollingUL != undefined) {
+  //         console.log($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight(), $('#highlight_list')[0].scrollHeight-0.4)
+  //         console.log("Making isScrolled TRUE");
+  //         isScrolled = true;
+  //         await populateHighlights(userDetails, scrollingUL, globalCurrentSpace);
+  //       }
+  //     }
+  //   })
+  bindHighlightListScroll();
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
