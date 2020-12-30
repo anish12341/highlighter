@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     userid: DataTypes.INTEGER,
     url_title: DataTypes.STRING,
     highlight_color: DataTypes.STRING,
+    highlight_name: DataTypes.STRING,
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
   }, {});

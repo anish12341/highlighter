@@ -172,7 +172,9 @@ const highlight = (path, selectedText, highlightid = undefined, highlightColor =
     element.innerHTML = innerContent;
     element.childNodes.forEach(element => {
       if (element.dataset && element.dataset.highlight) {
-        element.onclick = () => {highlightClicked(element, element.style.backgroundColor)};
+        element.onclick = () => {
+          highlightClicked(element, element.style.backgroundColor)
+        };
       }
     });
   }

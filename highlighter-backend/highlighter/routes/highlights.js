@@ -41,7 +41,8 @@ router.post('/new', auth.authenticateJWT,(req, res, next) => {
     xpath: Joi.string().required().label('xPath'),
     url_title: Joi.string().required().label('URL title'),
     highlight_color: Joi.string().required().label('Highlight color'),
-    current_space: Joi.number().required().label('Target space')
+    current_space: Joi.number().required().label('Target space'),
+    highlight_name: Joi.string().required().label('Highlight name')
   });
   
   const joiResult = Joi.validate(req.body, schema);

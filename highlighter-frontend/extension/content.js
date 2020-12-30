@@ -173,7 +173,9 @@ const highlight = (path, selectedText, highlightid = undefined, highlightColor =
     element.innerHTML = innerContent;
     element.childNodes.forEach(element => {
       if (element.dataset && element.dataset.highlight) {
-        element.onclick = () => {highlightClicked(element, element.style.backgroundColor)};
+        element.onclick = () => {
+          highlightClicked(element, element.style.backgroundColor)
+        };
       }
     });
   }
@@ -241,23 +243,24 @@ const getMultipleElements = (string, regexp) => {
  * This method send the selected HTML to background script. This is done by setting up a click listener
  * on the newly created div
  */
-const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue }) => {
+const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue, highlightName, tempSpanElement }) => {
   decisionDiv.addEventListener('click', async (event) => {
     chrome.storage.sync.get("currentSpace", ({ currentSpace }) => {
-      console.log("CurrentSpace: ", currentSpace);
       currentSpace = currentSpace || -1;
       chrome.runtime.sendMessage({
         'message':'setText',
         'data': selectedHTML, 
         xpath: xPath, 
         highlightColor: colorPickerValue,
-        currentSpace
+        currentSpace,
+        highlightName
       }, (response) => {
         let highlightid;
         if (response !== undefined) {
           highlightid = response.data.id;
         }
         decisionDiv.remove();
+        resetTempSpan(tempSpanElement);
         afterHighlight.highlight(xPath, selectedHTML, highlightid, colorPickerValue);
       });
     });
@@ -274,7 +277,51 @@ const createColorPaletDiv = (color) => {
   return colorPaletDiv;
 }
 
-module.exports = {extraTerminatingConditions, getPathInitial, onHighlightClick, createColorPaletDiv};
+const tempHighlight = ({path, selectedText, highlightColor = "#ffff4d"}) => {
+  let element = afterHighlight.getElementByXpath(path);
+  let innerContent = element.innerHTML;
+  innerContent = innerContent.replace(/\n/g, "");
+  innerContent = innerContent.replace(/\s\s/g,' ');
+  selectedText = selectedText.replace(/\n/g, "");
+  selectedText = selectedText.replace(/\s\s/g,' ');
+  let index = innerContent.indexOf(selectedText);
+  if (index >= 0) {
+    let spanString = innerContent.substring(index,index+selectedText.length);
+    let spanElement = document.createElement('span');
+    spanElement.id = 'temp_highlighter_span';
+    spanElement.innerHTML = spanString;
+    spanElement.style.backgroundColor = highlightColor;
+
+    let wrapper = document.createElement('div');
+    wrapper.id = 'temp_wrapper_div';
+    wrapper.appendChild(spanElement);
+
+    innerContent = innerContent.substring(0,index) + wrapper.innerHTML + innerContent.substring(index + selectedText.length);
+    element.innerHTML = innerContent;
+
+    return { spanElement };
+  }
+}
+
+const resetTempSpan = (spanElement) => {
+  const spanParent = spanElement.parentNode;
+  const spanParentInnerHTML = spanParent.innerHTML;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.appendChild(spanElement);
+
+  const spanIndex = spanParentInnerHTML.indexOf(tempDiv.innerHTML);
+  spanParent.innerHTML = spanParentInnerHTML.substring(0, spanIndex) + spanElement.innerHTML + spanParentInnerHTML.substring(spanIndex + tempDiv.innerHTML.length);
+}
+
+module.exports = {
+  extraTerminatingConditions,
+  getPathInitial,
+  onHighlightClick,
+  createColorPaletDiv,
+  tempHighlight,
+  resetTempSpan
+};
 
 },{"../afterHighlight/highlight.js":1}],3:[function(require,module,exports){
 /**
@@ -289,6 +336,7 @@ const afterHighlight = require('./afterHighlight/highlight.js');
 let flag = 0;
 let isDivThere = false;
 let colorPickerValue = "#ffff4d"
+let tempSpanElement;
 
 /**
  * When page loads get all the highlights for that page
@@ -357,13 +405,44 @@ document.addEventListener('mouseup', (event) =>
       // Check whether the element contains another highlight
       if (anotherHighlight(selectedHTML)) {
         // Preparing a div so that it can be displayed as "Highlight Me!"
-        let decisionDiv = document.createElement("DIV");
-        decisionDiv = getDivConfiguration(decisionDiv, event);
+        let divSkeleton = document.createElement("DIV");
+        const {
+          object: decisionDiv,
+          inputName,
+          triangleDiv,
+          emptyMessageDiv
+        } = getDivConfiguration(divSkeleton, event);
         document.body.appendChild(decisionDiv);
         isDivThere = true;
-        const highlightButton = decisionDiv.querySelector("#highlightme")
+
+        beforeHighlight.tempHighlight({ path: xPath, selectedText: selectedHTML });
+        tempSpanElement = document.getElementById("temp_highlighter_span");
+
+        const highlightButton = decisionDiv.querySelector("#highlightme");
         highlightButton.onclick = (() => {
-          beforeHighlight.onHighlightClick({ decisionDiv, xPath, selectedHTML, colorPickerValue });
+          if (inputName.value === '') {
+            fadeIn(triangleDiv, 300);
+            fadeIn(emptyMessageDiv, 300);
+          } else {
+            beforeHighlight.onHighlightClick({ 
+              decisionDiv, 
+              xPath,
+              selectedHTML, 
+              colorPickerValue,
+              highlightName: inputName.value,
+              tempSpanElement
+            });
+          }
+        });
+
+        inputName.addEventListener('keydown', (e) => {
+          if (e.target.value === '') {
+            fadeIn(triangleDiv, 300);
+            fadeIn(emptyMessageDiv, 300);
+          } else {
+            triangleDiv.style.display = 'none';
+            emptyMessageDiv.style.display = 'none';
+          }
         });
       }
     }
@@ -379,10 +458,14 @@ document.addEventListener('mousedown', async (event) =>
   // await checkPopup();
   flag = 0;
   if (isDivThere && event.target && 
-    event.target.id != 'highlightme' && event.target.id != 'color_picker') {
+    event.target.id != 'highlightme' && event.target.id != 'color_picker'
+    && event.target.id != 'input_highlight_name' && event.target.id != 'input_highlight_name_div') {
     let highlightDiv = document.getElementById('decision-popup');
     if (highlightDiv != undefined) {
       highlightDiv.remove();
+      if (tempSpanElement) {
+        beforeHighlight.resetTempSpan(tempSpanElement);
+      }
     }
     isDivThere = false;
   }
@@ -393,6 +476,23 @@ document.addEventListener('mousemove', (event) =>
 {
   flag = 1;
 });
+
+const fadeIn = (el, time) => {
+  el.style.display = 'block';
+  el.style.opacity = 0;
+
+  var last = +new Date();
+  var tick = function() {
+    el.style.opacity = +el.style.opacity + (new Date() - last) / time;
+    last = +new Date();
+
+    if (+el.style.opacity < 1) {
+      (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+    }
+  };
+
+  tick();
+}
 
 const createHighlightButton = () => {
   const highlightButton = document.createElement("button");
@@ -435,7 +535,8 @@ const createColorDropbox = ({ highlightButton }) => {
     height: '30px',
     backgroundColor: 'white',
     fontFamily: 'monospace',
-    fontSize: '11.5px'
+    fontSize: '11.5px',
+    borderRadius: '5px'
   });
 
   const yellowOption = document.createElement("option");
@@ -459,9 +560,75 @@ const createColorDropbox = ({ highlightButton }) => {
   colorDropbox.onchange = function() {
     colorPickerValue = this.value;
     highlightButton.style.backgroundColor = this.value;
+    if (tempSpanElement) {
+      tempSpanElement.style.backgroundColor = this.value;
+    }
   }
 
   return colorDropbox;
+}
+
+const createHighlightNameInput = () => {
+  const inputNameDiv = document.createElement('div');
+  inputNameDiv.id = 'input_highlight_name_div';
+  Object.assign(inputNameDiv.style, {
+    width: '120px',
+    height: '30px',
+    marginLeft: '10px',
+    fontSize: '0'
+  });
+
+  const inputName = document.createElement('input');
+  inputName.type = 'text';
+  inputName.id = 'input_highlight_name';
+  inputName.placeholder = 'Give name!';
+  inputName.maxLength = '20';
+  Object.assign(inputName.style, {
+    width: 'inherit',
+    height: 'inherit',
+    borderRadius: '5px',
+    fontFamily: 'monospace',
+    fontSize: '15px'
+  });
+
+  inputNameDiv.appendChild(inputName);
+  return {inputNameDiv, inputName};
+}
+
+const createNameMessageDiv = () => {
+  const triangleDiv = document.createElement('div');
+  triangleDiv.id = "triangle_div";
+  Object.assign(triangleDiv.style, {
+    width: '0',
+    height: '0',
+    borderLeft: '6px solid transparent',
+    borderRight: '6px solid transparent',
+    borderBottom: '13px solid #f9fad4',
+    position: 'absolute',
+    top: '44px',
+    left: '10px',
+    display: 'none'
+  });
+
+  const emptyMessageDiv = document.createElement('div');
+  emptyMessageDiv.id = "empty_message_div";
+  emptyMessageDiv.innerHTML = "Name required!";
+  Object.assign(emptyMessageDiv.style, {
+    width: 'fit-content',
+    height: '30px',
+    position: 'absolute',
+    borderRadius: '5px',
+    top: '53px',
+    left: '10px',
+    backgroundColor: '#f9fad4',
+    color: 'black',
+    fontSize: '13px',
+    paddingLeft: '4px',
+    paddingRight: '4px',
+    display: 'none'
+  });
+
+  return { triangleDiv, emptyMessageDiv };
 }
 
 const getDivConfiguration = (object, event) => {
@@ -486,11 +653,19 @@ const getDivConfiguration = (object, event) => {
       object.style[key] = style[key];
     }
   };
-  console.log("I am here!")
+
+  const {triangleDiv, emptyMessageDiv} = createNameMessageDiv();
+  const {inputNameDiv, inputName} = createHighlightNameInput();
   const highlightButton = createHighlightButton();
+  const colorPicker = createColorDropbox({ highlightButton });
+
+  object.appendChild(inputNameDiv);
   object.appendChild(highlightButton);
-  object.appendChild(createColorDropbox({ highlightButton }));
-  return object;
+  object.appendChild(colorPicker);
+  object.appendChild(triangleDiv);
+  object.appendChild(emptyMessageDiv);
+  
+  return {object, inputName, triangleDiv, emptyMessageDiv};
 };
 
 
