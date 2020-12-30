@@ -98,7 +98,8 @@ const asyncMessageListener = async (request, sender) => {
         highlight_color: request.highlightColor,
         url: sender.url,
         url_title: sender.tab.title,
-        current_space: request.currentSpace
+        current_space: request.currentSpace,
+        highlight_name: request.highlightName
       }
       if(userLoggedIn.isLoggedIn) {
         dataToSend.userid = userLoggedIn.userData.id;

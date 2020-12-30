@@ -57,23 +57,24 @@ const getMultipleElements = (string, regexp) => {
  * This method send the selected HTML to background script. This is done by setting up a click listener
  * on the newly created div
  */
-const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue }) => {
+const onHighlightClick = ({ decisionDiv, xPath, selectedHTML, colorPickerValue, highlightName, tempSpanElement }) => {
   decisionDiv.addEventListener('click', async (event) => {
     chrome.storage.sync.get("currentSpace", ({ currentSpace }) => {
-      console.log("CurrentSpace: ", currentSpace);
       currentSpace = currentSpace || -1;
       chrome.runtime.sendMessage({
         'message':'setText',
         'data': selectedHTML, 
         xpath: xPath, 
         highlightColor: colorPickerValue,
-        currentSpace
+        currentSpace,
+        highlightName
       }, (response) => {
         let highlightid;
         if (response !== undefined) {
           highlightid = response.data.id;
         }
         decisionDiv.remove();
+        resetTempSpan(tempSpanElement);
         afterHighlight.highlight(xPath, selectedHTML, highlightid, colorPickerValue);
       });
     });
@@ -90,4 +91,48 @@ const createColorPaletDiv = (color) => {
   return colorPaletDiv;
 }
 
-module.exports = {extraTerminatingConditions, getPathInitial, onHighlightClick, createColorPaletDiv};
+const tempHighlight = ({path, selectedText, highlightColor = "#ffff4d"}) => {
+  let element = afterHighlight.getElementByXpath(path);
+  let innerContent = element.innerHTML;
+  innerContent = innerContent.replace(/\n/g, "");
+  innerContent = innerContent.replace(/\s\s/g,' ');
+  selectedText = selectedText.replace(/\n/g, "");
+  selectedText = selectedText.replace(/\s\s/g,' ');
+  let index = innerContent.indexOf(selectedText);
+  if (index >= 0) {
+    let spanString = innerContent.substring(index,index+selectedText.length);
+    let spanElement = document.createElement('span');
+    spanElement.id = 'temp_highlighter_span';
+    spanElement.innerHTML = spanString;
+    spanElement.style.backgroundColor = highlightColor;
+
+    let wrapper = document.createElement('div');
+    wrapper.id = 'temp_wrapper_div';
+    wrapper.appendChild(spanElement);
+
+    innerContent = innerContent.substring(0,index) + wrapper.innerHTML + innerContent.substring(index + selectedText.length);
+    element.innerHTML = innerContent;
+
+    return { spanElement };
+  }
+}
+
+const resetTempSpan = (spanElement) => {
+  const spanParent = spanElement.parentNode;
+  const spanParentInnerHTML = spanParent.innerHTML;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.appendChild(spanElement);
+
+  const spanIndex = spanParentInnerHTML.indexOf(tempDiv.innerHTML);
+  spanParent.innerHTML = spanParentInnerHTML.substring(0, spanIndex) + spanElement.innerHTML + spanParentInnerHTML.substring(spanIndex + tempDiv.innerHTML.length);
+}
+
+module.exports = {
+  extraTerminatingConditions,
+  getPathInitial,
+  onHighlightClick,
+  createColorPaletDiv,
+  tempHighlight,
+  resetTempSpan
+};
