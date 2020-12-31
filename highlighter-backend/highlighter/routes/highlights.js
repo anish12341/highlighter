@@ -114,8 +114,9 @@ router.get('/',  auth.authenticateJWT, (req, res, next) => {
     to_include: Joi.number().default(0).label("Number of records to include"),
     current_space: Joi.number().default(-1).label("Current Space"),
     url: Joi.string().default('').label("URL"),
+    search_input: Joi.string().empty("").label("Search input")
   });
-
+  console.log("Search: ", req.query.search_input);
   const joiResult = Joi.validate(req.query, schema);
   if (joiResult.error) {
     console.log(joiResult.error);
@@ -132,19 +133,17 @@ router.get('/',  auth.authenticateJWT, (req, res, next) => {
   if (req.query.type === 'popup') {
     let size = req.query.size ? req.query.size : 10;
     let to_include = req.query.to_include == undefined ? 0 : req.query.to_include;
-    // Highlights
-    // .findAll({ 
-    //   where: { userid: req.query.userid }, 
-    //   limit: size,
-    //   offset: ((req.query.page - 1) * size) - to_include,
-    //   url: req.query.url
-    // })
-    // AND (h.url = ${req.query.url} OR (${req.query.url} = ''))
+    req.query.search_input = req.query.search_input ? req.query.search_input : '-1___ALL'
     sequelize.query(`SELECT h.* FROM public.highlights AS h
     WHERE (h.id IN ( SELECT cs.highlight_id
     FROM public.collab_space_highlights AS cs
     WHERE (cs.space_id = ${req.query.current_space}) ) or ${req.query.current_space} = -1)
     AND h.userid = ${req.query.userid}
+    AND (
+      h.selected_html ilike '%${req.query.search_input}%' 
+      OR h.highlight_name ilike '%${req.query.search_input}%' 
+      OR '${req.query.search_input}' = '-1___ALL'
+    )
     ORDER BY h."createdAt"
     OFFSET (${((req.query.page - 1) * size) - to_include})
     LIMIT (${size})`, {
