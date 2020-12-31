@@ -51,7 +51,13 @@ const handleError = () => {
  * This mehtod is used to populate extension popup with user's highlights
  */
 
-const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace) => {
+const populateHighlights =  (
+  userInfo, 
+  mainUL, 
+  currentSpace = globalCurrentSpace, 
+  searchInput = '', 
+  fromScroll = false
+) => {
   return new Promise (
     async (resolve, reject) => {
       chrome.storage.sync.get(['page'], async (data) => {
@@ -74,12 +80,13 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                             type: 'popup',
                             page, 
                             to_include,
-                            current_space: currentSpace
+                            current_space: currentSpace,
+                            search_input: searchInput
                           }, userInfo.userData.accesstoken); 
               if (highlights.data.length == 0 && page == 1) {
                 loaderDiv.style.display = 'none';
                 document.getElementById('no_highlight_div').style.display = 'flex';
-              } else {
+              } else if (highlights.data.length > 0){
                 await chrome.storage.sync.set( {page: page+1} , () => {});
                 console.log('My highlights:: ', highlights);
 
@@ -139,23 +146,16 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                     })};
                   mainUL.appendChild(copyElement);
                 });
+                // mainUL.style.display = 'inline-block';
+                if (!fromScroll) {
+                  if (mainUL.style.display != 'none') {
+                    mainUL.style.display = 'none';
+                  }
+                  $(mainUL).fadeIn(500);
+                }
                 mainUL.style.display = 'inline-block';
                 loaderDiv.style.display = 'none';
               }
-
-              // fetch(`${location.origin}/spaces/all/api?userid=${userid}`,
-              //     {
-              //       method: "GET"
-              //     })
-              //     .then(response => response.json())
-              //     .then(spaces => {
-              //       console.log(spaces);
-              //       const spacesUL = $("#spaces");
-              //       spaceLoader.hide();
-              //       spaces.data.map(eachSpace => {
-              //         spacesUL.append(createSpaceMarkup(eachSpace));
-              //       })
-              //     })
               return resolve();
             } catch(error) {
               console.log("Error::: ", error);
@@ -192,22 +192,24 @@ const populateSpacesMain = (userInfo) => {
   );
 }
 
+const changingHighlightList = () => {
+  const highlighList = $("#highlight_list");
+  const loaderDiv = $("#loader_div");
+  highlighList.unbind('scroll');
+  highlighList.empty();
+  loaderDiv.show();
+}
+
 const registerSelectOptionChange = ({ userDetails, scrollingUL }) => {
   console.log(userDetails);
   const spacesSelection = $("#spaces_selection");
   spacesSelection.change(async function() {
     globalCurrentSpace = $(this).val();
-    console.log("I am updated!!");
     await chrome.storage.sync.set({ currentSpace: $(this).val() });
-    const highlighList = $("#highlight_list");
-    const loaderDiv = $("#loader_div");
-    highlighList.unbind('scroll');
-    highlighList.empty();
-    loaderDiv.show();
-    console.log("");
+    changingHighlightList();
     await setOpenPage();
     await populateHighlights(userDetails, scrollingUL);
-    bindHighlightListScroll();
+    bindHighlightListScroll({});
   })
 }
 
@@ -217,7 +219,6 @@ const registerSelectOptionChange = ({ userDetails, scrollingUL }) => {
 const setOpenPage = () => {
   return new Promise (
     async (resolve, reject) => {
-      console.log('I am in setopen');
       await chrome.storage.sync.set({ openPopup: true });
       await chrome.storage.sync.set({ page: 1 });
       return resolve();
@@ -225,19 +226,19 @@ const setOpenPage = () => {
   )
 }
 
-const bindHighlightListScroll = () => {
+const bindHighlightListScroll = ({ searchInputText = '' }) => {
   $('#highlight_list').bind('scroll', async () => {
     if($('#highlight_list').scrollTop() + $('#highlight_list').innerHeight()>=($('#highlight_list')[0].scrollHeight-0.4))
     {
       if (userDetails != undefined && scrollingUL != undefined) {
-        await populateHighlights(userDetails, scrollingUL, globalCurrentSpace);
+        await populateHighlights(userDetails, scrollingUL, globalCurrentSpace, searchInputText, true);
       }
     }
   })
 }
 
 $(document).ready(async () => {
-  bindHighlightListScroll();
+  bindHighlightListScroll({});
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -254,7 +255,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         beforeHighlight_popup.setCurrentTab();
         scrolled();
-        console.log('I am already logged IN');
         // Make loader visible
         loaderDiv = document.getElementById('loader_div');
         loaderDiv.style.display = 'inline-block';
@@ -291,6 +291,29 @@ document.addEventListener('DOMContentLoaded', async () => {
           await populateHighlights(isUserLoggedIn,scrollingUL);
           await populateSpacesMain(userDetails);
           registerSelectOptionChange({ userDetails, scrollingUL });
+        });
+
+        // Register onchange event listener with search input tag
+        const searchInput = $('#search_input');
+        searchInput.keypress(async function(e) {
+          const keycode = (e.keyCode ? e.keyCode : e.which);
+          if(keycode == '13'){
+            const searchInputText = $(this).val();
+            changingHighlightList();
+            await setOpenPage();
+            await populateHighlights(userDetails, scrollingUL, undefined, searchInputText);
+            bindHighlightListScroll({ searchInputText });
+          }
+        });
+
+        const closeSearchSign = $('#close_search_sign');
+        closeSearchSign.on('click', async function(e) {
+          $(searchInput).val('');
+          $(searchInput).blur();
+          changingHighlightList();
+          await setOpenPage();
+          await populateHighlights(userDetails, scrollingUL);
+          bindHighlightListScroll({});
         });
       } catch(error) {
         console.log(error);
