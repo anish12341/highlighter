@@ -256,13 +256,15 @@ const createHighlightNameInput = () => {
   inputName.type = 'text';
   inputName.id = 'input_highlight_name';
   inputName.placeholder = 'Give name!';
-  inputName.maxLength = '20';
+  inputName.maxLength = '40';
   Object.assign(inputName.style, {
     width: 'inherit',
     height: 'inherit',
     borderRadius: '5px',
     fontFamily: 'monospace',
-    fontSize: '15px'
+    fontSize: '15px',
+    padding: '0',
+    margin: '0'
   });
 
   inputNameDiv.appendChild(inputName);

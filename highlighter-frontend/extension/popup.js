@@ -352,6 +352,9 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                   let UL = document.createElement('ul');
                   UL.classList.add('each_highlight');
 
+                  let li0 = document.createElement('li');
+                  li0.innerHTML = eachHighlight.highlight_name;
+
                   let li1 = document.createElement('li');
                   li1.innerHTML = eachHighlight.selected_html;
                   
@@ -367,6 +370,7 @@ const populateHighlights =  (userInfo, mainUL, currentSpace = globalCurrentSpace
                   let li2 = document.createElement('li');
 
                   li2.appendChild(anchor);
+                  UL.appendChild(li0);
                   UL.appendChild(li1);
                   UL.appendChild(li2);
                   [...UL.children].forEach((each) => {
