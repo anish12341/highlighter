@@ -268,61 +268,102 @@
         list-style: none;
         position: absolute;
         top: 0;
+        overflow-y: scroll;
       }
 
       .my-each-highlight {
         width: 100%;
-        height: 5%;
+        height: 7%;
         position: relative;
       }
 
-      .my-each-highlight-div {
-        position: absolute;
+      .each-highlight-first-class {
         width: fit-content;
+        max-width: 60%;
         margin-right: 2%;
         margin-top: 1%;
+        /* padding-left: 1%;
+        padding-right: 3%; */
+        float: right;
+        border-radius: 5px;
         background-color: white;
-        height: 20px;
-        right: 0;
-        max-width: 60%;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .each-highlight-content {
+        display: inline-block;
+        width: fit-content;
+        max-width: 100%;
+        float: right;
+        background-color: white;
+        font-family: monospace;
+        padding-right: 3px;
+        padding-left: 3px;
+        border-radius: 5px;
+      }
+
+      .my-each-highlight-div {
+        text-align: left;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         cursor: pointer;
-        padding-top: 1%;
-        padding-left: 1%;
-        padding-right: 2%;
-        font-family: monospace;
-        border-radius: 5px;
+      }
+
+      .my-menu-sign-div {
+        height: fit-content;
+        display: inline-block;
+        float: right;
+        margin: 0;
+        margin-top: 2px;
+        margin-right: 2px;
+      }
+
+      .my-menu-sign {
+        cursor: pointer;
+      }
+
+      .my-each-highlight-name {
+        text-align: left;
+        white-space: nowrap;
       }
 
       .other-each-highlight {
         width: 100%;
-        height: 7%; 
+        height: 9%; 
         position: relative;
       }
 
       .other-each-highlight-div {
         display: inline-block;
+        width: fit-content;
+        max-width: 95%;
+        float: left;
         background-color: white;
-        /* position: absolute; */
+        font-family: monospace;
+        padding-right: 3px;
+        padding-left: 3px;
+        border-radius: 5px;
+
+        /* display: inline-block;
+        background-color: white;
         width: fit-content;
         margin-left: 2%;
         margin-top: 1%;
         padding-left: 1%;
         padding-right: 1%;
-        /* background-color: white; */
         float: left;
         max-width: 60%;
         font-family: monospace;
-        border-radius: 5px;
-        /* overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        cursor: pointer; */
+        border-radius: 5px; */
       }
 
       .other-person-name {
+        text-align: left;
+      }
+
+      .other-highlight-name {
         text-align: left;
       }
 
@@ -331,6 +372,8 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         cursor: pointer;
+        float: left;
+        max-width: 100%;
       }
 
       .standard-highlight {
@@ -552,22 +595,25 @@
         /* margin: auto; */
       }
 
-      .each-highlight-content {
-
-      }
-
       .other-highlight-main {
         /* position: relative;
         width: 100%;
         height: fit-content; */
+        width: fit-content;
+        max-width: 60%;
+        margin-left: 2%;
+        margin-top: 1%;
+        float: left;
+        border-radius: 5px;
+        background-color: white;
+        display: flex;
+        justify-content: space-between;
       }
 
       .other-copy-sign {
         /* position: absolute;
         right: 2.5%;
         top: 37%; */
-        margin-top: 230%;
-        background-color: white;
         cursor: pointer;
       }
 
@@ -593,6 +639,8 @@
         display: inline-block;
         float: left;
         margin: 0;
+        margin-top: 4px;
+        margin-right: 4px;
       }
 
       .menu-div {
@@ -753,28 +801,44 @@
               </div>
             </li> -->
             <li class="my-each-highlight">
-              <div class="each-highlight-content">
-              <div class="my-each-highlight-div">
-                <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">g</a>
-                
+              <div class="each-highlight-first-class">
+                <div class="each-highlight-content">
+                  <div class="my-each-highlight-name">
+                    Anish Name
+                  </div>
+                  <div class="my-each-highlight-div">
+                    <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">g</a>
+                    
+                  </div>
+                </div>
+                <div class="my-menu-sign-div">
+                  <i title="Copy Highlight!" class="my-menu-sign fa fa-ellipsis-v"></i>
+                </div>
               </div>
-              <i title="Copy Highlight!" class="copy-sign fa fa-ellipsis-v"></i>
-            </div>
             </li>
             <li class="my-each-highlight">
-              <div class="each-highlight-content">
-              <div class="my-each-highlight-div">
-                <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">give askjksjdkajkjkasdjkasjdkas ajdkasj jkja smjs akjfkkjsajdkjaskdjakdjkasjdkajdksjakdajskdjsa askdjskdjaa ajdksjkdj  you frei</a>
-                
+              <div class="each-highlight-first-class">
+                <div class="each-highlight-content">
+                  <div class="my-each-highlight-name">
+                    Anish Name
+                  </div>
+                  <div class="my-each-highlight-div">
+                    <a target="_blank" href="https://www.linkedin.com/in/anish-patel-4a40b4135/">give askjsjdjsydjsjdhjshd jshdjshj dsj jshd sjdhsjdkahab s jhajsd jhjahdsjdhshdjshdjsksjdkajkjk</a>
+                  </div>
+                </div>
+                <div class="my-menu-sign-div">
+                  <i title="Copy Highlight!" class="my-menu-sign fa fa-ellipsis-v"></i>
+                </div>
               </div>
-              <i title="Copy Highlight!" class="copy-sign fa fa-ellipsis-v"></i>
-            </div>
             </li>
             <li class="other-each-highlight">
               <div class="other-highlight-main">
                 <div class="other-each-highlight-div">
                   <div class="other-person-name">
                     <span class="standard-highlight">Pragya</span>
+                  </div>
+                  <div class="other-highlight-name">
+                    Highlight Name
                   </div>
                   <div class="other-highlight-content">
                     <a target="_blank" href="https://www.w3schools.com/html/">ou will find complete references about HTML elements, 
@@ -793,8 +857,29 @@
                   <div class="other-person-name">
                     <span class="standard-highlight">Pragya</span>
                   </div>
+                  <div class="other-highlight-name">
+                    Highlight Name
+                  </div>
                   <div class="other-highlight-content">
                     <a target="_blank" href="https://www.w3schools.com/html/">ttributes,</a>
+                  </div>
+                </div>
+                <div class="menu-sign-div">
+                  <i title="Copy Highlight!" class="other-copy-sign fa fa-ellipsis-v"></i>
+                </div>
+              </div>
+            </li>
+            <li class="other-each-highlight">
+              <div class="other-highlight-main">
+                <div class="other-each-highlight-div">
+                  <div class="other-person-name">
+                    <span class="standard-highlight">Sid</span>
+                  </div>
+                  <div class="other-highlight-name">
+                    H
+                  </div>
+                  <div class="other-highlight-content">
+                    <a target="_blank" href="https://www.w3schools.com/html/">A,</a>
                   </div>
                 </div>
                 <div class="menu-sign-div">
@@ -862,6 +947,7 @@
               <button id="no_delete_highlight">No</button>
             </div>
           </div>
+          <div id=""></div>
         </div>
       </div>
       
