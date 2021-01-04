@@ -223,14 +223,24 @@ const menuLogic = ({ e, parentLi, selectedHtml, highlightid, myHighlight, menuSi
 
 const createHighlightMarkup = ({ myHighlight, highlightData, high }) => {
   const liClass = myHighlight ? "my-each-highlight" : "other-each-highlight";
+  const mySuperDiv = "each-highlight-first-class";
   const parentDivClass = myHighlight ? "each-highlight-content" : "other-highlight-main";
   const divClass = myHighlight ? "my-each-highlight-div" : "other-each-highlight-div";
-  const menuSignClass = myHighlight ? "copy-sign fa fa-ellipsis-v" : "other-copy-sign fa fa-ellipsis-v";
+  const highlightNameDivClass = myHighlight ? "my-each-highlight-name" : "other-highlight-name";
+  const menuSignDivClass = myHighlight ? "my-menu-sign-div" : "menu-sign-div";
+  const menuSignClass = myHighlight ? "my-menu-sign fa fa-ellipsis-v" : "other-copy-sign fa fa-ellipsis-v";
   const parentLi = document.createElement("li");
   parentLi.className = liClass;
 
+  const superDiv = document.createElement("div");
+  superDiv.className = mySuperDiv;
+
   const parentDiv = document.createElement("div");
   parentDiv.className = parentDivClass;
+
+  const highlightNameDiv = document.createElement("div");
+  highlightNameDiv.className = highlightNameDivClass;
+  highlightNameDiv.innerHTML = highlightData.highlight_name;
 
   const childDiv = document.createElement("div");
   childDiv.className = divClass;
@@ -252,9 +262,16 @@ const createHighlightMarkup = ({ myHighlight, highlightData, high }) => {
   };
 
   if (myHighlight) {
+    parentDiv.appendChild(highlightNameDiv);
     parentDiv.appendChild(childDiv);
-    parentDiv.appendChild(menuSign);
-    parentLi.appendChild(parentDiv);
+    superDiv.appendChild(parentDiv);
+
+    const menuDiv = document.createElement("div");
+    menuDiv.className = menuSignDivClass;
+    menuDiv.appendChild(menuSign);
+    superDiv.appendChild(menuDiv);
+
+    parentLi.appendChild(superDiv);
     childDiv.innerHTML = `<a target="_blank" href="${highlightData.url}">${highlightData.selected_html}</a>`;
     return parentLi;
   }
@@ -268,6 +285,8 @@ const createHighlightMarkup = ({ myHighlight, highlightData, high }) => {
 
   memberNameDiv.appendChild(memberNameSpan);
   childDiv.appendChild(memberNameDiv);
+
+  childDiv.appendChild(highlightNameDiv);
   
   const highlightContenDiv = document.createElement("div");
   highlightContenDiv.className = "other-highlight-content"; 
@@ -277,7 +296,7 @@ const createHighlightMarkup = ({ myHighlight, highlightData, high }) => {
   parentDiv.appendChild(childDiv);
 
   const menuDiv = document.createElement("div");
-  menuDiv.className = "menu-sign-div";
+  menuDiv.className = menuSignDivClass;
 
   menuDiv.appendChild(menuSign);
   parentDiv.appendChild(menuDiv);
