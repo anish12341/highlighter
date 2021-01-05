@@ -243,6 +243,7 @@
         position: absolute;
         display: flex;
         justify-content: center;
+        top: 0;
       }
 
       .no-highlight-message {
@@ -254,7 +255,22 @@
 
       .no-highlight-message-div {
         width: 100%;
-        height: 100%;
+        height: 95%;
+        position: absolute;
+        display: none;
+        justify-content: center;
+      }
+
+      .empty-search-critiria-message {
+        margin: 0;
+        font-family: monospace;
+        z-index: 4;
+        align-self: center;
+      }
+
+      .empty-search-critiria-div {
+        width: 100%;
+        height: 95%;
         position: absolute;
         display: none;
         justify-content: center;
@@ -262,12 +278,12 @@
 
       .highlights-list {
         width: 100%;
-        height:100%;
+        height: 95%;
         margin: 0;
         padding: 0;
         list-style: none;
         position: absolute;
-        top: 0;
+        top: 5%;
         overflow-y: scroll;
       }
 
@@ -331,7 +347,7 @@
 
       .other-each-highlight {
         width: 100%;
-        height: 9%; 
+        height: 10%; 
         position: relative;
       }
 
@@ -727,6 +743,38 @@
         font-size: 15px;
       }
 
+      .search-input-div {
+        width: 100%;
+        height: 5%;
+        box-sizing: border-box;
+        display: none;
+      }
+
+      .search-input {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        box-sizing: inherit;
+        padding-left: 3%;
+        padding-right: 4%;
+        font-family: monospace;
+      }
+
+      .search-sign {
+        position: absolute;
+        align-self: center;
+        margin-left: 0.5%;
+        width: 2%;
+      }
+
+      .close-search-sign {
+        position: absolute;
+        align-self: center;
+        right: 1%;
+        cursor: pointer;
+        width: 2%;
+      }
+
     </style>
   </head>
   <body>
@@ -784,9 +832,19 @@
           </div>
         </div>
         <div class="highlight-content">
+          <div id="search_input_div" class="search-input-div">
+            <i class="search-sign fa fa-search" aria-hidden="true"></i>
+            <input id="search_input" class="search-input" placeholder="Type and hit Enter!" type="text">
+            <i id="close_search_sign" class="close-search-sign fa fa-times" aria-hidden="true"></i>
+          </div>
           <div id="no_highlight_message_div" class="no-highlight-message-div">
             <p id="no_highlight_message" class="no-highlight-message">
               This <span class="standard-highlight">space</span> does not have any highlights!
+            </p>
+          </div>
+          <div id="empty_search_critiria_div" class="empty-search-critiria-div">
+            <p id="empty_search_critiria_message" class="empty-search-critiria-message">
+              Given <span class="standard-highlight">search input</span> does not seem to have any highlights!
             </p>
           </div>
           <div id="guiding_message_div" class="guiding-message-div">

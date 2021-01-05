@@ -368,7 +368,8 @@ router.get('/:space_id/highlights', auth.authenticateJWT, (req, res, next) => {
   }
 
   const querySchema = Joi.object().keys({
-    userid: Joi.number().required().label('User ID')
+    userid: Joi.number().required().label('User ID'),
+    search_input: Joi.string().empty('').label('Search input')
   });
 
   const queryJoiResult = Joi.validate(req.query, querySchema);
@@ -384,11 +385,17 @@ router.get('/:space_id/highlights', auth.authenticateJWT, (req, res, next) => {
   }
 
   const { space_id } = req.params;
+  req.query.search_input = req.query.search_input === '' ? '-1___ALL' : req.query.search_input;
   sequelize.query(`SELECT h.*, u.name  FROM highlights AS h INNER JOIN collab_space_highlights AS csh
   ON h.id = csh.highlight_id
   INNER JOIN users AS u
   ON u.id = h.userid
   WHERE csh.space_id = ${space_id}
+  AND (
+    h.selected_html ilike '%${req.query.search_input}%' 
+    OR h.highlight_name ilike '%${req.query.search_input}%' 
+    OR '${req.query.search_input}' = '-1___ALL'
+  )
   ORDER BY h."createdAt" DESC`, {
     type: QueryTypes.SELECT
   })
