@@ -3,7 +3,8 @@ let memberNames = [];
 let addMemberMessageStatus = true;
 let memberError, nameError, inputSpaceMembers, nameField, spaceLoader, logoutButton, notificationButton;
 let mySpaceEntry, deleteHighlightCancel, deleteHighlightModal, noDeleteHighlight, yesDeleteHighlight;
-let createModalCloseButton, cancelButtonCreateModal, noHighlightMessage;
+let createModalCloseButton, cancelButtonCreateModal, noHighlightMessage, searchInput, closeSearchSign;
+let searchInputDiv, emptySearchCritiriaDiv;
 let globalUserDetails;
 
 
@@ -305,13 +306,13 @@ const createHighlightMarkup = ({ myHighlight, highlightData, high }) => {
   return parentLi;
 }
 
-const getSpaceHighlights = ({ space_id }) => {
+const getSpaceHighlights = ({ space_id, searchInput="", fromSearch=false }) => {
   const highlightsUL = $("#space_highlights_data");
   highlightsUL.empty();
   $("#guiding_message_div").hide();
   $("#loader_div_highlight").show();
 
-  fetch(`${location.origin}/spaces/${space_id}/highlights?userid=${globalUserDetails.id}`,
+  fetch(`${location.origin}/spaces/${space_id}/highlights?userid=${globalUserDetails.id}&search_input=${searchInput}`,
   {
     method: "GET",
     headers: {
@@ -322,10 +323,15 @@ const getSpaceHighlights = ({ space_id }) => {
   .then(({ data: highlights }) => {
     $("#loader_div_highlight").hide();
     if (highlights.length === 0) {
-      noHighlightMessage.css("display", "flex");
+      if (fromSearch) {
+        emptySearchCritiriaDiv.css("display", "flex")
+      } else {
+        noHighlightMessage.css("display", "flex");
+      }
       return;
     } else {
       noHighlightMessage.hide();
+      emptySearchCritiriaDiv.hide();
     }
 
     highlights.map((eachHighlight) => {
@@ -339,11 +345,18 @@ const getSpaceHighlights = ({ space_id }) => {
   });
 }
 
+const bindSpaceIdSearch = (({ space_id }) => {
+  searchInputDiv.css("display", "flex");
+  searchInput.data("space_id", space_id);
+  searchInput.data("started", false);
+});
+
 const createSpaceMarkup = (spaceData) => {
   const spaceLi = document.createElement("li");
   spaceLi.className = "each-space-entry";
   spaceLi.setAttribute("data-space-id", spaceData.space_id);
   spaceLi.onclick = () => {
+    bindSpaceIdSearch({ space_id: spaceData.space_id });
     getSpaceHighlights({ space_id: spaceData.space_id })
   };
 
@@ -499,6 +512,30 @@ document.addEventListener("DOMContentLoaded", function(){
     closeButtonCreateModal = $("#modal_close_button");
     cancelButtonCreateModal = $("#modal_cancel_button");
     noHighlightMessage = $("#no_highlight_message_div");
+    searchInputDiv = $("#search_input_div");
+    searchInput = $("#search_input");
+    closeSearchSign = $("#close_search_sign");
+    emptySearchCritiriaDiv = $("#empty_search_critiria_div");
+
+    searchInput.keypress(async function(e) {
+      const keycode = (e.keyCode ? e.keyCode : e.which);
+      if(keycode == '13'){
+        searchInput.data("started", true);
+        const searchInputText = $(this).val();
+        const boundedSpaceId = $(this).data("space_id");
+        getSpaceHighlights({ space_id: boundedSpaceId, searchInput: searchInputText, fromSearch: true });
+      }
+    });
+
+    closeSearchSign.on('click', async function(e) {
+      if (searchInput.data("started")) {
+        searchInput.val('');
+        const boundedSpaceId = searchInput.data("space_id");
+        searchInput.data("started", false);
+        getSpaceHighlights({ space_id: boundedSpaceId });
+      }
+      searchInput.blur();
+    });
 
     deleteHighlightCancel.add(noDeleteHighlight).on("click", function(e) {
       deleteHighlightModal.hide();
